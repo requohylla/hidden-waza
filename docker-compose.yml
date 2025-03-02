@@ -1,0 +1,35 @@
+# version: 'x' # composeファイルのバージョン。省略しているが特定のバージョンを使用したい場合は記載
+services:
+  go: # サービス名
+    container_name: ${APP_NAME} # コンテナ名
+    build: # ビルドに使うDockerファイルのパス
+      context: ./golang # ビルドコンテキスト。Docker がビルド時に参照するファイルやディレクトリの範囲 COPY コマンドなどで使用できるファイルに影響
+      dockerfile: ../containers/golang/Dockerfile # ビルドコンテキストから見てdockerfileがあるパス
+      args: # dockerfileに渡せる環境変数
+        - APP_NAME=${APP_NAME}
+    ports:
+      - "8080:8080" # ホストマシンのポート番号:コンテナのポート番号
+    depends_on: #サービス間の依存関係。https://gotohayato.com/content/533/
+      - db 
+    volumes: # ホストとコンテナの内容をリアルタイムで同期するための設定
+      - .:/${APP_NAME} #ホストディレクトリ : コンテナ内ディレクトリ
+    tty: true # コンテナの永続化
+    environment: # Dockerのコンテナ内で使用される環境変数を設定
+      - DATABASE_URL=mysql://user:password@tcp(db:3306)/mydb
+      - TZ=${TZ}
+
+  db:
+    image: mariadb:11.4
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD}
+      MYSQL_USER: ${DB_USER}
+      MYSQL_PASSWORD: ${DB_PASSWORD}
+      MYSQL_DATABASE: mydb
+    ports:
+      - "3306:3306"
+    volumes:
+      - db_volume:/var/lib/mysql # 作成したvolumeからデータをコンテナ内にマウント
+
+volumes: # Docker Composeするときに作成されるvolume
+  db_volume: # DB永続化のためのvolume
