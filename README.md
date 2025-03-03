@@ -13,6 +13,8 @@
     - ORM、Bunも追加予定
 - Backend For Frontend
   - Nest.js + GraphQL
+    - パッケージマネージャー
+      - npm(将来的にはpnpmに変更したい)
 - Frontend
   - Next.js + typescript
 - Infra
