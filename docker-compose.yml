@@ -18,18 +18,18 @@ services:
       - DATABASE_URL=${DB_URL}
       - TZ=${TZ}
 
-  # typescript-bbf:
-  #   container_name: app-bbf
-  #   build:
-  #     context: ./typescript/apps/graphql
-  #     dockerfile: ../../../docker/nestjs/Dockerfile
-  #   ports:
-  #       - '3000:3000'
-  #   volumes:
-  #       - ./typescript/apps/graphql:/app
-  #   tty: true
-  #   environment:
-  #     - TZ=${TZ}
+  typescript-bbf:
+    container_name: app-bbf
+    build:
+      context: ./typescript/apps/graphql
+      dockerfile: ../../../docker/nestjs/Dockerfile
+    ports:
+        - '3000:3000'
+    volumes:
+        - ./typescript/apps/graphql:/app
+    tty: true
+    environment:
+      - TZ=${TZ}
 
   db-go:
     image: mariadb:11.4
