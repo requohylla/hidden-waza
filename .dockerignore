@@ -3,6 +3,7 @@
 #
 # For more help, visit the .dockerignore file reference guide at
 # https://docs.docker.com/go/build-context-dockerignore/
+# 補足: 明示的なCOPYでは除外されない
 
 **/.DS_Store
 **/.classpath
@@ -24,6 +25,11 @@
 **/compose.y*ml
 **/Dockerfile*
 **/node_modules
+**/package.json
+**/package-lock.json
+**/go.mod
+**/go.sum
+**/vendor
 **/npm-debug.log
 **/obj
 **/secrets.dev.yaml
