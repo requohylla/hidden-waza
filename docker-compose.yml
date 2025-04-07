@@ -1,10 +1,10 @@
 # version: 'x' # composeファイルのバージョン。省略しているが特定のバージョンを使用したい場合は記載
 services:
   go: # サービス名
-    container_name: ${APP_NAME}-backend # コンテナ名
+    container_name: app-backend # コンテナ名
     build: # ビルドに使うDockerファイルのパス
-      context: ./golang # ビルドコンテキスト。Docker がビルド時に参照するファイルやディレクトリの範囲 COPY コマンドなどで使用できるファイルに影響
-      dockerfile: ../containers/golang/Dockerfile # ビルドコンテキストから見てdockerfileがあるパス
+      context: ./golang # ビルドコンテキスト。Docker がビルド時に参照するファイルやディレクトリの範囲 COPY コマンドなどで使用できるファイルに影響。ビルドコンテキスト配下にある全てのファイルやディレクトリをDocker deamonに送信しているのでディレクトリ分けや無駄なファイルを置かないのが重要
+      dockerfile:  ../docker/golang/Dockerfile # ビルドコンテキストから見てdockerfileがあるパス。
       args: # dockerfileに渡せる環境変数
         - APP_NAME=${APP_NAME}
     ports:
@@ -12,26 +12,24 @@ services:
     depends_on: #サービス間の依存関係。https://gotohayato.com/content/533/
       - db-go 
     volumes: # ホストとコンテナの内容をリアルタイムで同期するための設定
-      - .:/${APP_NAME} #ホストディレクトリ : コンテナ内ディレクトリ
+      - ./golang:/app #ホストディレクトリ : コンテナ内ディレクトリ
     tty: true # コンテナの永続化
     environment: # Dockerのコンテナ内で使用される環境変数を設定
-      - DATABASE_URL=mysql://user:password@tcp(db:3306)/mydb
+      - DATABASE_URL=${DB_URL}
       - TZ=${TZ}
 
-  typescript-bbf:
-    container_name: ${APP_NAME}-bbf
-    build:
-      context: ./typescript/apps/graphql
-      dockerfile: ../../../containers/nestjs/Dockerfile
-      args:
-        - APP_NAME=${APP_NAME}
-    ports:
-        - '3000:3000'
-    volumes:
-        - .:/${APP_NAME}
-    tty: true
-    environment:
-      - TZ=${TZ}
+  # typescript-bbf:
+  #   container_name: app-bbf
+  #   build:
+  #     context: ./typescript/apps/graphql
+  #     dockerfile: ../../../docker/nestjs/Dockerfile
+  #   ports:
+  #       - '3000:3000'
+  #   volumes:
+  #       - ./typescript/apps/graphql:/app
+  #   tty: true
+  #   environment:
+  #     - TZ=${TZ}
 
   db-go:
     image: mariadb:11.4
