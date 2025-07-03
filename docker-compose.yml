@@ -31,6 +31,21 @@ services:
     environment:
       - TZ=${TZ}
 
+  nextjs:
+    container_name: app-nextjs
+    build:
+      context: ./typescript/apps/nextjs
+      dockerfile: ../../../docker/nextjs/Dockerfile
+    ports:
+      - '3001:3000'
+    volumes:
+      - ./typescript/apps/nextjs:/app
+      - /app/node_modules
+      - /app/.next
+    tty: true
+    environment:
+      - TZ=${TZ}
+
   db-go:
     image: mariadb:11.4
     restart: always
