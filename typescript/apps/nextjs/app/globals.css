@@ -1,4 +1,7 @@
 @import "tailwindcss";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
 :root {
   --background: #ffffff;
@@ -23,4 +26,64 @@ body {
   background: var(--background);
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
+}
+
+body, html {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  font-family: sans-serif;
+}
+
+.projects-container {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  height: 100vh;
+}
+
+.projects-sidebar {
+  background-color: #f0f0f0;
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.projects-sidebar ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.projects-sidebar li + li {
+  margin-top: 0.5rem;
+}
+
+.projects-sidebar a {
+  text-decoration: none;
+  color: #333;
+}
+
+.projects-sidebar a.active {
+  font-weight: bold;
+}
+
+.projects-main {
+  padding: 1rem;
+  overflow-y: auto;
+}
+
+.split-view {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  height: 100%;
+}
+
+.code-view {
+  padding: 1rem;
+  border-right: 1px solid #ddd;
+  overflow: auto;
+}
+
+.demo-view {
+  padding: 1rem;
+  overflow: auto;
 }
