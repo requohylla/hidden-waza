@@ -24,7 +24,7 @@ export default async function ProjectPage({
     return notFound();
   }
 
-  const Demo = (await import(`../../../../projects/work/${slug}/Demo`)).default;
+  const Demo = (await import(`../../../../../projects/work/${slug}/Demo`)).default;
 
   return (
     <div className="split-view">

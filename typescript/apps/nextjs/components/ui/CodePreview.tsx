@@ -14,9 +14,7 @@ export function CodePreview({ slug, fetchPath }: CodePreviewProps) {
 
   // Escapeキーでモーダル閉じる
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      setIsOpen(false);
-    }
+    if (e.key === 'Escape') setIsOpen(false);
   }, []);
 
   useEffect(() => {
@@ -26,15 +24,16 @@ export function CodePreview({ slug, fetchPath }: CodePreviewProps) {
 
   // スニペットをロード
   useEffect(() => {
-    fetch(fetchPath)
-      .then(res => {
+    // 絶対 URL を組み立て
+    const url = `${window.location.origin}${fetchPath}`;
+
+    fetch(url)
+      .then((res) => {
         if (!res.ok) throw new Error(`Failed to load snippet: ${slug}`);
         return res.text();
       })
-      .then(code => {
-        setSnippet(code.trim());
-      })
-      .catch(err => {
+      .then((code) => setSnippet(code.trim()))
+      .catch((err) => {
         console.warn(err);
         setSnippet('');
       });
@@ -62,7 +61,7 @@ export function CodePreview({ slug, fetchPath }: CodePreviewProps) {
         >
           <div
             className="bg-white rounded-lg w-11/12 md:w-3/4 lg:w-1/2 p-6 relative"
-            onClick={e => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
           >
             <button
               onClick={() => setIsOpen(false)}
