@@ -1,8 +1,12 @@
-export default function WorkIndex() {
-    return (
-      <div style={{ padding: '1rem' }}>
-        <h1>Work Projects</h1>
-        <p>左のメニューからプロジェクトを選択してください。</p>
-      </div>
-    );
-  }
+import { redirect } from 'next/navigation'
+
+interface Props {
+  params: { locale: string }
+}
+
+/*
+    /ja/projects/workを直打ちされた場合はindexに遷移
+*/
+export default function WorkIndexRedirect({ params }: Props) {
+  redirect(`/${params.locale}/projects/work/index`)
+}

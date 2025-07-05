@@ -1,15 +1,34 @@
+// components/ui/ProjectCard.tsx
 'use client';
 
 import Link from 'next/link';
 import { CodePreview } from './CodePreview';
+import { getProjects, ProjectCardProps as BaseProps } from '../../data/projects';
 
-export interface ProjectCardProps {
-  slug: string;
-  title: string;
-  description: string;
+// 利用可能なカテゴリ一覧。増えたらここに追加するだけでOK。
+const CATEGORIES = ['work', 'chat'] as const;
+type Category = typeof CATEGORIES[number];
+
+export interface ProjectCardProps extends BaseProps {
+  // slug, title, description は BaseProps に含まれる想定
 }
 
 export function ProjectCard({ slug, title, description }: ProjectCardProps) {
+  // slug からカテゴリを逆引き
+  let category: Category | undefined;
+  for (const cat of CATEGORIES) {
+    const list = getProjects(cat);
+    if (list.find((p) => p.slug === slug)) {
+      category = cat;
+      break;
+    }
+  }
+
+  // カテゴリが見つからない場合はトップの projects へリンク
+  const href = category
+    ? `/projects/${category}/${slug}`
+    : `/projects`;
+
   return (
     <div className="flex flex-col justify-between p-6 bg-white border rounded-xl hover:shadow-lg transition-shadow">
       <div>
@@ -18,7 +37,7 @@ export function ProjectCard({ slug, title, description }: ProjectCardProps) {
         <CodePreview slug={slug} fetchPath={`/api/snippets/${slug}`} />
       </div>
       <Link
-        href={`/projects/work/${slug}`}
+        href={href}
         className="mt-auto inline-block text-center py-2 px-4 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition"
       >
         Live Demo →
