@@ -3,6 +3,11 @@
       "slug": "validationcheck",
       "title": "Validation Check",
       "description": "Real-time input validation demo"
+    },
+    {
+      "slug": "3dviewer",
+      "title": "3dviewer",
+      "description": "view 3d model"
     }
   ]
   

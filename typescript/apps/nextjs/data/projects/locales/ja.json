@@ -3,6 +3,11 @@
       "slug": "validationcheck",
       "title": "ValidationCheck",
       "description": "リアルタイム入力検証デモ"
+    },
+    {
+      "slug": "3dviewer",
+      "title": "3dviewer",
+      "description": "3dモデルを表示する"
     }
   ]
   
