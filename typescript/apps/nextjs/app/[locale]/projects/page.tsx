@@ -1,4 +1,3 @@
-import { ProjectCard } from '../../../components/ui/ProjectCard'
 import { ProjectCardList } from '../../../components/ui/ProjectCardList'
 import { getProjects } from '../../../data/projects'
 

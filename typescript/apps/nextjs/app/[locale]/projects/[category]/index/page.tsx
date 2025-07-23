@@ -1,36 +1,35 @@
-import fs from 'fs/promises';
-import path from 'path';
+import { getLocalizedJsonValue } from "@/lib/getLocalizedJsonValue"
 
 interface Props {
   params: { locale: string; category: string }
 }
 
-async function getCategoryDescription(category: string, locale: string) {
-  const filePath = path.join(process.cwd(), 'data', 'projects', 'categoryDescriptions.json');
-  const json = await fs.readFile(filePath, 'utf-8');
-  const descriptions = JSON.parse(json);
-  return descriptions[category]?.[locale] ?? { title: category, description: '' };
-}
-
-async function getCommonTip(locale: string) {
-  const filePath = path.join(process.cwd(), 'data', 'projects', 'commonDescriptions.json');
-  const json = await fs.readFile(filePath, 'utf-8');
-  const tips = JSON.parse(json);
-  return tips.tip?.[locale] ?? '';
-}
+import { notFound } from 'next/navigation'
 
 export default async function CategoryIndexPage({ params }: Props) {
-  const { locale, category } = params;
-  const { title, description } = await getCategoryDescription(category, locale);
-  const tip = await getCommonTip(locale);
+  const { locale, category } = params
+  const categoryDesc = await getLocalizedJsonValue(
+    "data/projects/categoryDescriptions.json",
+    category,
+    locale
+  )
+  // カテゴリが存在しない場合は404
+  if (!categoryDesc) {
+    notFound()
+  }
+  const tip = await getLocalizedJsonValue(
+    "data/projects/commonDescriptions.json",
+    "tip",
+    locale
+  )
 
   return (
     <div className="flex flex-col items-center justify-center h-full p-6 text-center">
       <h1 className="text-2xl font-semibold mb-4">
-        {title}
+        {categoryDesc?.title}
       </h1>
       <p className="text-gray-600 mb-6 max-w-md">
-        {description}
+        {categoryDesc?.description}
       </p>
       <div className="flex space-x-2 text-xs text-gray-400 mb-6">
         <span>{tip}</span>
