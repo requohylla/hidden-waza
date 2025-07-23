@@ -21,4 +21,15 @@
       "tip": "Click a card to view demo"
     }
   }
+  ,
+  "pdf": {
+    "ja": {
+      "title": "PDF編集プロジェクト",
+      "description": "PDFファイルをアップロード・編集・ダウンロードできます。"
+    },
+    "en": {
+      "title": "PDF Editor Project",
+      "description": "You can upload, edit, and download PDF files."
+    }
+  }
 }

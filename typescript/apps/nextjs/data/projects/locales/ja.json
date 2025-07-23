@@ -12,5 +12,12 @@
       "title": "3dviewer",
       "description": "3dモデルを表示する"
     }
+  ],
+  "pdf": [
+    {
+      "slug": "editor",
+      "title": "PDFエディタ",
+      "description": "PDFファイルを編集・ダウンロードできます"
+    }
   ]
 }

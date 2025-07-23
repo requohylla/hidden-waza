@@ -12,5 +12,12 @@
       "title": "3dviewer",
       "description": "view 3d model"
     }
+  ],
+  "pdf": [
+    {
+      "slug": "editor",
+      "title": "PDF Editor",
+      "description": "You can edit and download PDF files"
+    }
   ]
 }

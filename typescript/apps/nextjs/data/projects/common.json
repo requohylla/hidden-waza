@@ -24,5 +24,18 @@
         }
       }
     ]
+  },
+  "pdf": {
+    "common": {
+      "description": "sample"
+    },
+    "items": [
+      {
+        "slug": "editor",
+        "common": {
+          "description": "PDFを編集・ダウンロードできる機能"
+        }
+      }
+    ]
   }
 }

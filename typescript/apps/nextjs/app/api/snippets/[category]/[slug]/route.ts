@@ -13,15 +13,6 @@ export async function GET(
 
   let filePath: string;
   switch (category) {
-    case '3dmodel':
-      filePath = path.join(
-        process.cwd(),
-        'projects',
-        '3dmodel',
-        slug,
-        'app.tsx'
-      );
-      break;
     case 'work':
       filePath = path.join(
         process.cwd(),
@@ -31,11 +22,16 @@ export async function GET(
         'Demo.tsx'
       );
       break;
+
     default:
-      return NextResponse.json(
-        { error: `未対応のcategory: ${category}` },
-        { status: 400 }
+      filePath = path.join(
+        process.cwd(),
+        'projects',
+        category,
+        slug,
+        'app.tsx'
       );
+      break;
   }
 
   try {
