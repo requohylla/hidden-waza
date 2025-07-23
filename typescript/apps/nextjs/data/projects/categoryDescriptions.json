@@ -1,0 +1,24 @@
+{
+  "3dmodel": {
+    "ja": {
+      "title": "3Dモデル関連プロジェクト",
+      "description": "下の一覧から、3Dモデルに関連するさまざまな機能を確認・操作できます。"
+    },
+    "en": {
+      "title": "3D Model Projects",
+      "description": "Explore and manage various 3D model-related features from below."
+    }
+  },
+  "work": {
+    "ja": {
+      "title": "Work Projectsへようこそ",
+      "description": "下部のカードからプロジェクトを選択すると詳細が表示されます。",
+      "tip": "カードをクリックしてデモを表示"
+    },
+    "en": {
+      "title": "Welcome to Work Projects",
+      "description": "Select a project from above to see its details.",
+      "tip": "Click a card to view demo"
+    }
+  }
+}
