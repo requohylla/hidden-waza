@@ -1,16 +1,16 @@
 {
-  "3dmodel": [
-    {
-      "slug": "3dviewer",
-      "title": "3dviewer",
-      "description": "view 3d model"
-    }
-  ],
   "work": [
     {
       "slug": "validationcheck",
       "title": "Validation Check",
       "description": "Real-time input validation demo"
+    }
+  ],
+  "3dmodel": [
+    {
+      "slug": "3dviewer",
+      "title": "3dviewer",
+      "description": "view 3d model"
     }
   ]
 }

@@ -1,8 +1,8 @@
 'use client';
 import React from 'react';
 
-import { getProjects, ProjectCardProps } from '../../../../../data/projects';
-import { ProjectCard } from '../../../../../components/ui/ProjectCard';
+import { getProjects } from '../../../../../data/projects';
+import { ProjectCardList } from '../../../../../components/ui/ProjectCardList';
 
 export default function ThreeDimensionalModelIndexLayout({
   children,
@@ -13,18 +13,13 @@ export default function ThreeDimensionalModelIndexLayout({
 }) {
   const { locale, category } = React.use(params);
   const selectedCategory = category || '3dmodel';
-  const { items: projects, categoryCommon } = getProjects(locale)[selectedCategory] ?? { items: [], categoryCommon: {} };
 
   return (
     <div className="max-w-5xl mx-auto p-6">
       <div>
         {children}
       </div>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
-        {projects.map((proj) => (
-          <ProjectCard key={proj.slug} {...proj} />
-        ))}
-      </div>
+      <ProjectCardList locale={locale} category={selectedCategory} />
     </div>
   );
 }

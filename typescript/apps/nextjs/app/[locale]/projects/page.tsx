@@ -1,4 +1,5 @@
 import { ProjectCard } from '../../../components/ui/ProjectCard'
+import { ProjectCardList } from '../../../components/ui/ProjectCardList'
 import { getProjects } from '../../../data/projects'
 
 interface Props {
@@ -21,11 +22,7 @@ export default async function ProjectsIndex({ params }: Props) {
           ? 'Here you can browse technical demos and portfolios.'
           : 'ここでは技術デモ・ポートフォリオを一覧でご覧いただけます。'}
       </p>
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-8">
-        {projects.map((proj) => (
-          <ProjectCard key={proj.slug} {...proj} />
-        ))}
-      </div>
+      <ProjectCardList locale={locale} />
     </div>
   )
 }
