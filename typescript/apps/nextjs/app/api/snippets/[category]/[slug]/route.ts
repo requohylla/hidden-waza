@@ -6,18 +6,37 @@ import path from 'path';
 // context.params を await してから使う。
 export async function GET(
   _request: Request,
-  context: { params: { slug: string } }
+  context: { params: { category: string; slug: string } }
 ) {
   // params が Promise の場合もあるので await 
-  const { slug } = await context.params;
+  const { category, slug } = await context.params;
 
-  const filePath = path.join(
-    process.cwd(),
-    'projects',
-    'work',
-    slug,
-    'Demo.tsx'
-  );
+  let filePath: string;
+  switch (category) {
+    case '3dmodel':
+      filePath = path.join(
+        process.cwd(),
+        'projects',
+        '3dmodel',
+        slug,
+        'app.tsx'
+      );
+      break;
+    case 'work':
+      filePath = path.join(
+        process.cwd(),
+        'projects',
+        'work',
+        slug,
+        'Demo.tsx'
+      );
+      break;
+    default:
+      return NextResponse.json(
+        { error: `未対応のcategory: ${category}` },
+        { status: 400 }
+      );
+  }
 
   try {
     const code = await fs.readFile(filePath, 'utf-8');
@@ -28,7 +47,7 @@ export async function GET(
     });
   } catch (e) {
     return NextResponse.json(
-      { error: `スニペット読込失敗: ${slug}` },
+      { error: `スニペット読込失敗: ${category}/${slug}` },
       { status: 404 }
     );
   }

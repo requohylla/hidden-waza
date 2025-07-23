@@ -21,7 +21,7 @@ export function ProjectCard(props: ProjectCardProps) {
       <div>
         <h2 className="text-2xl font-semibold mb-2">{title}</h2>
         <p className="text-gray-500 mb-4">{description}</p>
-        <CodePreview slug={slug} fetchPath={`/api/snippets/${slug}`} />
+        <CodePreview slug={slug} fetchPath={`/api/snippets/${category}/${slug}`} />
       </div>
       <Link
         href={href}
