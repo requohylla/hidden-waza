@@ -1,9 +1,9 @@
 interface Props {
-  params: { locale: string }
+  params: { locale: string; }
 }
 
-export default function ThreeDimensionalModelIndexPage({ params }: Props) {
-  const { locale } = params
+export default async function ThreeDimensionalModelIndexPage({ params }: Props) {
+  const { locale } = await params
 
   return (
     <div className="flex flex-col items-center justify-center h-full p-6 text-center">
@@ -25,7 +25,6 @@ export default function ThreeDimensionalModelIndexPage({ params }: Props) {
             : 'カードをクリックすると、詳細の確認や操作を開始できます。'}
         </span>
       </div>
-
       <hr className="w-full border-t border-gray-200 mt-auto" />
     </div>
   )

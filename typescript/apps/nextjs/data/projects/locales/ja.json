@@ -1,13 +1,16 @@
-[
-    {
-      "slug": "validationcheck",
-      "title": "ValidationCheck",
-      "description": "リアルタイム入力検証デモ"
-    },
+{
+  "3dmodel": [
     {
       "slug": "3dviewer",
       "title": "3dviewer",
       "description": "3dモデルを表示する"
     }
+  ],
+  "work": [
+    {
+      "slug": "validationcheck",
+      "title": "ValidationCheck",
+      "description": "リアルタイム入力検証デモ"
+    }
   ]
-  
+}

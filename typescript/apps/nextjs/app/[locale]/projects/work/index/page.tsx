@@ -1,9 +1,9 @@
 interface Props {
-  params: { locale: string }
+  params: { locale: string; }
 }
 
-export default async function WorkIndexPage({ params }: Props) {
-  const { locale } = await params
+export default function WorkIndexPage({ params }: Props) {
+  const { locale } = params
 
   return (
     <div className="flex flex-col items-center justify-center h-full p-6 text-center">

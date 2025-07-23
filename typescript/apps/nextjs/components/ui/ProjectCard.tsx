@@ -13,22 +13,12 @@ export interface ProjectCardProps extends BaseProps {
   // slug, title, description は BaseProps に含まれる想定
 }
 
-export function ProjectCard({ slug, title, description }: ProjectCardProps) {
-  // slug からカテゴリを逆引き
-  let category: Category | undefined;
-  for (const cat of CATEGORIES) {
-    const list = getProjects(cat);
-    if (list.find((p) => p.slug === slug)) {
-      category = cat;
-      break;
-    }
-  }
-
-  // カテゴリが見つからない場合はトップの projects へリンク
+export function ProjectCard({ slug, title, description, category }: ProjectCardProps) {
+  // categoryプロパティを直接利用
   const href = category
     ? `/projects/${category}/${slug}`
     : `/projects`;
-
+ 
   return (
     <div className="flex flex-col justify-between p-6 bg-white border rounded-xl hover:shadow-lg transition-shadow">
       <div>

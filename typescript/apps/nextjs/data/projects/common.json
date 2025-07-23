@@ -1,8 +1,28 @@
-[
-    {
-      "slug": "validationcheck"
+{
+  "3dmodel": {
+    "common": {
+      "description": "3Dモデルカテゴリ共通説明"
     },
-    {
-      "slug": "3dviewer"
-    }
-  ]
+    "items": [
+      {
+        "slug": "3dviewer",
+        "common": {
+          "description": "3Dビューア共通説明"
+        }
+      }
+    ]
+  },
+  "work": {
+    "common": {
+      "description": "業務カテゴリ共通説明"
+    },
+    "items": [
+      {
+        "slug": "validationcheck",
+        "common": {
+          "description": "バリデーション共通説明"
+        }
+      }
+    ]
+  }
+}
