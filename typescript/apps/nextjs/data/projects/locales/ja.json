@@ -4,6 +4,11 @@
       "slug": "validationcheck",
       "title": "ValidationCheck",
       "description": "リアルタイム入力検証デモ"
+    },
+    {
+      "slug": "proof",
+      "title": "職務経歴書デモ",
+      "description": "職務経歴（技術証明）を登録・履歴表示できるデモ"
     }
   ],
   "3dmodel": [

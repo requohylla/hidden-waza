@@ -20,8 +20,17 @@
       "description": "Select a project from above to see its details.",
       "tip": "Click a card to view demo"
     }
-  }
-  ,
+  },
+  "proof": {
+    "ja": {
+      "title": "職務経歴書デモ（技術証明）",
+      "description": "職務経歴（技術証明）を登録し、履歴一覧で確認できるデモです。"
+    },
+    "en": {
+      "title": "Work Proof Demo",
+      "description": "Register your work history (proof) and view the list of entries."
+    }
+  },
   "pdf": {
     "ja": {
       "title": "PDF編集プロジェクト",

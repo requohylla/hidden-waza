@@ -9,6 +9,12 @@
         "common": {
           "description": ""
         }
+      },
+      {
+        "slug": "proof",
+        "common": {
+          "description": "職務経歴書（技術証明）を登録・履歴表示できるデモ"
+        }
       }
     ]
   },

@@ -4,6 +4,11 @@
       "slug": "validationcheck",
       "title": "Validation Check",
       "description": "Real-time input validation demo"
+    },
+    {
+      "slug": "proof",
+      "title": "Work Proof Demo",
+      "description": "Register your work history (proof) and view the list of entries"
     }
   ],
   "3dmodel": [
