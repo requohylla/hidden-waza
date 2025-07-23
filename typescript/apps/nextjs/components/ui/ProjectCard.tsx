@@ -5,20 +5,17 @@ import Link from 'next/link';
 import { CodePreview } from './CodePreview';
 import { getProjects, ProjectCardProps as BaseProps } from '../../data/projects';
 
-// 利用可能なカテゴリ一覧。増えたらここに追加するだけでOK。
-const CATEGORIES = ['work', 'chat'] as const;
-type Category = typeof CATEGORIES[number];
-
 export interface ProjectCardProps extends BaseProps {
   // slug, title, description は BaseProps に含まれる想定
 }
 
-export function ProjectCard({ slug, title, description, category }: ProjectCardProps) {
-  // categoryプロパティを直接利用
+export function ProjectCard(props: ProjectCardProps) {
+  // propeからプロパティを抽出
+  const { slug, title, description, category } = props;
   const href = category
     ? `/projects/${category}/${slug}`
     : `/projects`;
- 
+
   return (
     <div className="flex flex-col justify-between p-6 bg-white border rounded-xl hover:shadow-lg transition-shadow">
       <div>

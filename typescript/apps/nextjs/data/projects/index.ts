@@ -24,29 +24,7 @@ export type ProjectCardProps = ProjectCommon & ProjectText & {
 }
 
 /** locale に応じて common + texts をマージした配列を返す（category付き） */
-export function getProjects(locale: string): ProjectCardProps[] {
-  const textsByCategory = localeDataTyped[locale as Locale] ?? localeDataTyped.ja
-  const result: ProjectCardProps[] = []
-  for (const category of Object.keys(commonData)) {
-    const categoryCommon = commonData[category].common ?? {}
-    const items = commonData[category].items
-    const texts = textsByCategory[category] ?? []
-    for (const c of items) {
-      const t = texts.find(x => x.slug === c.slug)
-      if (t) {
-        result.push({
-          ...c,
-          ...t,
-          category,
-          categoryCommon: categoryCommon,
-          itemCommon: c.common ?? {}
-        })
-      }
-    }
-  }
-  return result
-}
-export function getProjectsByCategory(locale: string): Record<string, { categoryCommon?: { description?: string }, items: ProjectCardProps[] }> {
+export function getProjects(locale: string): Record<string, { categoryCommon?: { description?: string }, items: ProjectCardProps[] }> {
   const textsByCategory = localeDataTyped[locale as Locale] ?? localeDataTyped.ja
   const result: Record<string, { categoryCommon?: { description?: string }, items: ProjectCardProps[] }> = {}
   for (const category of Object.keys(commonData)) {
@@ -57,10 +35,12 @@ export function getProjectsByCategory(locale: string): Record<string, { category
     for (const c of items) {
       const t = texts.find(x => x.slug === c.slug)
       if (t) {
+        const { common, ...rest } = c
         mergedItems.push({
-          ...c,
+          ...rest,
           ...t,
           category,
+          categoryCommon: categoryCommon,
           itemCommon: c.common ?? {}
         })
       }

@@ -13,7 +13,7 @@ export default function WorkIndexLayout({
 }) {
   const { locale, category } = React.use(params);
   const selectedCategory = category || 'work';
-  const projects = getProjects(locale).filter((p) => p.category === selectedCategory);
+  const { items: projects, categoryCommon } = getProjects(locale)[selectedCategory] ?? { items: [], categoryCommon: {} };
 
   return (
     <div className="max-w-5xl mx-auto p-6">

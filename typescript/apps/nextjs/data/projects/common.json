@@ -1,26 +1,26 @@
 {
   "3dmodel": {
     "common": {
-      "description": "3Dモデルカテゴリ共通説明"
+      "description": ""
     },
     "items": [
       {
         "slug": "3dviewer",
         "common": {
-          "description": "3Dビューア共通説明"
+          "description": ""
         }
       }
     ]
   },
   "work": {
     "common": {
-      "description": "業務カテゴリ共通説明"
+      "description": ""
     },
     "items": [
       {
         "slug": "validationcheck",
         "common": {
-          "description": "バリデーション共通説明"
+          "description": ""
         }
       }
     ]

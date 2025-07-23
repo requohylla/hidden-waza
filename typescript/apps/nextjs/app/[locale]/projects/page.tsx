@@ -9,7 +9,7 @@ interface Props {
 
 export default async function ProjectsIndex({ params }: Props) {
   const { locale } = await params
-  const projects = getProjects(locale)
+  const projects = Object.values(getProjects(locale)).flatMap(v => v.items)
 
   return (
     <div>
