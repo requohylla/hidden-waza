@@ -38,7 +38,6 @@ export default function ResponsiveProjectPage({ markdown, Demo }: Props) {
 
   const handleMouseMove = useCallback((e: MouseEvent) => {
     if (!isResizing || !containerRef.current) return;
-    
     const container = containerRef.current;
     const rect = container.getBoundingClientRect();
     const newRatio = Math.max(20, Math.min(80, ((e.clientX - rect.left) / rect.width) * 100));
@@ -61,7 +60,6 @@ export default function ResponsiveProjectPage({ markdown, Demo }: Props) {
       document.body.style.cursor = '';
       document.body.style.userSelect = '';
     }
-
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mouseup', handleMouseUp);
@@ -212,8 +210,6 @@ export default function ResponsiveProjectPage({ markdown, Demo }: Props) {
             <span className="text-sm">2画面表示</span>
           </button>
         </Toolbar>
-        
-        {/* メインコンテンツ領域 */}
         <div className="flex-1 bg-white overflow-auto">
           <Demo />
         </div>
@@ -234,7 +230,6 @@ export default function ResponsiveProjectPage({ markdown, Demo }: Props) {
           <span className="text-sm">1画面表示</span>
         </button>
       </Toolbar>
-
       {/* メインコンテンツ領域 */}
       <div
         ref={containerRef}
@@ -254,7 +249,6 @@ export default function ResponsiveProjectPage({ markdown, Demo }: Props) {
         >
           <Demo />
         </div>
-
         {/* リサイザー */}
         <div
           className="bg-gray-300 hover:bg-gray-400 cursor-ew-resize transition-colors"
@@ -264,8 +258,7 @@ export default function ResponsiveProjectPage({ markdown, Demo }: Props) {
           }}
           onMouseDown={handleResizerMouseDown}
         />
-
-        {/* 右側：説明欄 */}
+        {/* 右側：説明欄（タブUI） */}
         <div
           className="bg-white border-l border-gray-200 overflow-auto"
           style={{
@@ -274,34 +267,128 @@ export default function ResponsiveProjectPage({ markdown, Demo }: Props) {
             flexShrink: 0
           }}
         >
-          <div className="p-6">
-            <div className="prose prose-sm max-w-none">
-              <ReactMarkdown
-                rehypePlugins={[rehypeHighlight]}
-                components={{
-                  h1: ({node, ...props}) => <h1 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200" {...props} />,
-                  h2: ({node, ...props}) => <h2 className="text-xl font-semibold text-gray-800 mb-3 mt-6" {...props} />,
-                  h3: ({node, ...props}) => <h3 className="text-lg font-medium text-gray-700 mb-2 mt-4" {...props} />,
-                  p: ({node, ...props}) => <p className="text-gray-600 mb-3 leading-relaxed" {...props} />,
-                  code: ({node, ...props}: any) =>
-                    props.inline
-                      ? <code className="bg-gray-100 text-red-600 px-1.5 py-0.5 rounded text-sm font-mono" {...props} />
-                      : <code className="block bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm font-mono" {...props} />,
-                  pre: ({node, ...props}) => <pre className="bg-gray-900 rounded-lg overflow-x-auto mb-4" {...props} />,
-                  ul: ({node, ...props}) => <ul className="list-disc list-inside text-gray-600 mb-3 space-y-1" {...props} />,
-                  ol: ({node, ...props}) => <ol className="list-decimal list-inside text-gray-600 mb-3 space-y-1" {...props} />,
-                  li: ({node, ...props}) => <li className="ml-2" {...props} />,
-                  blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-blue-500 pl-4 italic text-gray-700 my-4" {...props} />,
-                  a: ({node, ...props}) => <a className="text-blue-600 hover:text-blue-800 underline" {...props} />,
-                  strong: ({node, ...props}) => <strong className="font-semibold text-gray-900" {...props} />,
-                  em: ({node, ...props}) => <em className="italic text-gray-700" {...props} />,
-                }}
-              >
-                {markdown}
-              </ReactMarkdown>
-            </div>
-          </div>
+          <TabSection markdown={markdown} />
         </div>
+      </div>
+    </div>
+  );
+}
+
+// --- タブ切り替え説明欄 ---
+function TabSection({ markdown }: { markdown: string }) {
+  // 見出し抽出
+  const headings = markdown
+    .split('\n')
+    .map(line => {
+      const match = line.match(/^(#{1,3})\s+(.*)/);
+      if (match) {
+        return {
+          level: match[1].length,
+          text: match[2].trim(),
+          id: encodeURIComponent(match[2].trim().replace(/\s+/g, '-').replace(/[^\w\-ぁ-んァ-ン一-龥]/g, '')),
+        };
+      }
+      return null;
+    })
+    .filter(Boolean) as { level: number; text: string; id: string }[];
+
+  const [activeTab, setActiveTab] = React.useState(headings[0]?.id ?? '');
+
+  // 指定見出しのみ抽出
+  function extractSection(id: string) {
+    const lines = markdown.split('\n');
+    let found = false;
+    let section: string[] = [];
+    let currentLevel = 0;
+    for (let i = 0; i < lines.length; i++) {
+      const match = lines[i].match(/^(#{1,3})\s+(.*)/);
+      if (match) {
+        const thisId = encodeURIComponent(match[2].trim().replace(/\s+/g, '-').replace(/[^\w\-ぁ-んァ-ン一-龥]/g, ''));
+        if (thisId === id) {
+          found = true;
+          currentLevel = match[1].length;
+          section.push(lines[i]);
+          continue;
+        }
+        if (found && match[1].length <= currentLevel) {
+          break;
+        }
+      }
+      if (found) section.push(lines[i]);
+    }
+    return section.join('\n');
+  }
+
+  return (
+    <div className="h-full flex flex-col">
+      {/* ブラウザタブ風のタブバー */}
+      <div className="relative bg-gray-200 border-b border-gray-300">
+        <div className="flex overflow-x-auto scrollbar-hide">
+          {headings.map(h => (
+            <button
+              key={h.id}
+              className={`relative flex-shrink-0 px-4 py-2 text-sm font-medium transition-all duration-200 border-r border-gray-300 min-w-max ${
+                activeTab === h.id
+                  ? 'bg-white text-gray-900 border-t-2 border-t-blue-500'
+                  : 'bg-gray-100 text-gray-600 hover:bg-gray-50 hover:text-gray-900'
+              }`}
+              onClick={() => setActiveTab(h.id)}
+            >
+              <span className="flex items-center gap-2 whitespace-nowrap">
+                {/* アクティブタブのアイコン */}
+                {activeTab === h.id && (
+                  <span className="w-2 h-2 bg-blue-500 rounded-full" />
+                )}
+                {h.text}
+                {/* 閉じるボタン風の装飾 */}
+                <span className={`w-4 h-4 rounded-full text-xs flex items-center justify-center transition-colors ${
+                  activeTab === h.id
+                    ? 'hover:bg-gray-200 text-gray-500'
+                    : 'opacity-0'
+                }`}>
+                  ×
+                </span>
+              </span>
+            </button>
+          ))}
+        </div>
+        {/* カスタムスクロールバースタイル */}
+        <style jsx>{`
+          .scrollbar-hide {
+            -ms-overflow-style: none;
+            scrollbar-width: none;
+          }
+          .scrollbar-hide::-webkit-scrollbar {
+            display: none;
+          }
+        `}</style>
+      </div>
+      
+      {/* コンテンツエリア */}
+      <div className="flex-1 prose prose-sm max-w-none bg-white p-6 overflow-auto">
+        <ReactMarkdown
+          rehypePlugins={[rehypeHighlight]}
+          components={{
+            h1: ({node, ...props}) => <h1 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200" {...props} />,
+            h2: ({node, ...props}) => <h2 className="text-xl font-semibold text-gray-800 mb-3 mt-6" {...props} />,
+            h3: ({node, ...props}) => <h3 className="text-lg font-medium text-gray-700 mb-2 mt-4" {...props} />,
+            p: ({node, ...props}) => <p className="text-gray-600 mb-3 leading-relaxed" {...props} />,
+            code: ({node, ...props}: any) =>
+              props.inline
+                ? <code className="bg-gray-100 text-red-600 px-1.5 py-0.5 rounded text-sm font-mono" {...props} />
+                : <code className="block bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm font-mono" {...props} />,
+            pre: ({node, ...props}) => <pre className="bg-gray-900 rounded-lg overflow-x-auto mb-4" {...props} />,
+            ul: ({node, ...props}) => <ul className="list-disc list-inside text-gray-600 mb-3 space-y-1" {...props} />,
+            ol: ({node, ...props}) => <ol className="list-decimal list-inside text-gray-600 mb-3 space-y-1" {...props} />,
+            li: ({node, ...props}) => <li className="ml-2" {...props} />,
+            blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-blue-500 pl-4 italic text-gray-700 my-4" {...props} />,
+            a: ({node, ...props}) => <a className="text-blue-600 hover:text-blue-800 underline" {...props} />,
+            strong: ({node, ...props}) => <strong className="font-semibold text-gray-900" {...props} />,
+            em: ({node, ...props}) => <em className="italic text-gray-700" {...props} />,
+          }}
+        >
+          {extractSection(activeTab)}
+        </ReactMarkdown>
       </div>
     </div>
   );
