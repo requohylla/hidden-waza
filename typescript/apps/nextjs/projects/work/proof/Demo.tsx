@@ -136,7 +136,7 @@ export default function Demo() {
         ))}
       </ul>
       <p style={{ marginTop: 24, fontSize: 12, color: '#888' }}>
-        ※ バックエンドAPI・BFFは別途実装予定です。現在はフロントのみの仮動作です。
+        ※バックエンドAPI・BFFは別途実装予定です。現在はフロントのみの仮動作です。
       </p>
     </div>
   )

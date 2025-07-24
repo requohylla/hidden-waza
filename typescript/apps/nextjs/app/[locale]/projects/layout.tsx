@@ -1,8 +1,7 @@
 'use client';
-import { ReactNode, useState, useMemo, useEffect } from 'react';
+import { ReactNode, useState, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import dynamic from 'next/dynamic';
 import {
   MagnifyingGlassIcon,
   StarIcon as StarOutline,
@@ -25,22 +24,17 @@ const sampleProjects: Project[] = [
   { slug: 'demo3', title: 'Demo Project 3', isFavorite: true },
 ];
 
-function ProjectsLayoutClient({ children }: { children: ReactNode }) {
+export default function ProjectsLayout({ children }: { children: ReactNode }) {
   const pathname = usePathname();
   const currentSlug = pathname.split('/').pop() || '';
   const [query, setQuery] = useState('');
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [isSidebarVisible, setIsSidebarVisible] = useState(false);
-  const [locale, setLocale] = useState('en');
 
-  // クライアントサイドでlocaleを取得
-  useEffect(() => {
-    const pathSegments = pathname.split('/');
-    const detectedLocale = pathSegments[1] || 'en';
-    setLocale(detectedLocale);
-  }, [pathname]);
+  // pathnameからlocaleを取得（SSR安全）
+  const locale = pathname.split('/')[1] || 'en';
 
-  // 多言語対応
+  // 多言語対応（SSR安全）
   const texts = {
     ja: {
       myPortfolio: 'マイポートフォリオ',
@@ -85,7 +79,7 @@ function ProjectsLayoutClient({ children }: { children: ReactNode }) {
             >
               <XMarkIcon className="w-6 h-6 text-gray-700" />
             </button>
-            <Link href="/" className="text-2xl font-extrabold mb-8">
+            <Link href="/" className="text-2xl font-extrabold mb-8" suppressHydrationWarning>
               {t.myPortfolio}
             </Link>
             <div className="relative mb-6">
@@ -99,7 +93,7 @@ function ProjectsLayoutClient({ children }: { children: ReactNode }) {
               <MagnifyingGlassIcon className="w-5 h-5 text-gray-400 absolute left-3 top-2.5" />
             </div>
             <div className="mb-6">
-              <h2 className="flex items-center text-sm font-semibold mb-2">
+              <h2 className="flex items-center text-sm font-semibold mb-2" suppressHydrationWarning>
                 <StarOutline className="w-4 h-4 mr-1 text-yellow-500" />
                 {t.favorites}
               </h2>
@@ -126,7 +120,7 @@ function ProjectsLayoutClient({ children }: { children: ReactNode }) {
               </ul>
             </div>
             <div className="flex-1 overflow-y-auto">
-              <h2 className="text-sm font-semibold mb-2">{t.tags}</h2>
+              <h2 className="text-sm font-semibold mb-2" suppressHydrationWarning>{t.tags}</h2>
               <div className="flex flex-wrap gap-2">
                 {TAGS.map((tag) => (
                   <button
@@ -169,7 +163,7 @@ function ProjectsLayoutClient({ children }: { children: ReactNode }) {
         >
           <XMarkIcon className="w-6 h-6 text-gray-700" />
         </button>
-        <Link href="/" className="text-2xl font-extrabold mb-8">
+        <Link href="/" className="text-2xl font-extrabold mb-8" suppressHydrationWarning>
           {t.myPortfolio}
         </Link>
         <div className="relative mb-6">
@@ -179,11 +173,12 @@ function ProjectsLayoutClient({ children }: { children: ReactNode }) {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             className="w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring"
+            suppressHydrationWarning
           />
           <MagnifyingGlassIcon className="w-5 h-5 text-gray-400 absolute left-3 top-2.5" />
         </div>
         <div className="mb-6">
-          <h2 className="flex items-center text-sm font-semibold mb-2">
+          <h2 className="flex items-center text-sm font-semibold mb-2" suppressHydrationWarning>
             <StarOutline className="w-4 h-4 mr-1 text-yellow-500" />
             {t.favorites}
           </h2>
@@ -210,7 +205,7 @@ function ProjectsLayoutClient({ children }: { children: ReactNode }) {
           </ul>
         </div>
         <div className="flex-1 overflow-y-auto">
-          <h2 className="text-sm font-semibold mb-2">{t.tags}</h2>
+          <h2 className="text-sm font-semibold mb-2" suppressHydrationWarning>{t.tags}</h2>
           <div className="flex flex-wrap gap-2">
             {TAGS.map((tag) => (
               <button
@@ -238,39 +233,3 @@ function ProjectsLayoutClient({ children }: { children: ReactNode }) {
     </div>
   );
 }
-
-// SSR対応のためのローディング表示
-function LayoutLoadingFallback() {
-  return (
-    <div className="flex h-screen bg-gray-100">
-      <div className="hidden md:flex h-full w-72 flex-shrink-0">
-        <div className="w-72 border-r bg-white p-6 flex flex-col">
-          <div className="text-2xl font-extrabold mb-8">Portfolio</div>
-          <div className="relative mb-6">
-            <input
-              type="text"
-              placeholder="Search..."
-              className="w-full pl-10 pr-3 py-2 border rounded-lg focus:outline-none focus:ring"
-              disabled
-            />
-            <MagnifyingGlassIcon className="w-5 h-5 text-gray-400 absolute left-3 top-2.5" />
-          </div>
-        </div>
-      </div>
-      <main className="flex-1 overflow-y-auto p-8">
-        <div className="text-center text-gray-500">読み込み中...</div>
-      </main>
-    </div>
-  );
-}
-
-// dynamicインポートでSSRを無効化
-const ProjectsLayout = dynamic(
-  () => Promise.resolve(ProjectsLayoutClient),
-  {
-    ssr: false,
-    loading: LayoutLoadingFallback
-  }
-);
-
-export default ProjectsLayout;
