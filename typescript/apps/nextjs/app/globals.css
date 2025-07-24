@@ -47,6 +47,29 @@ body, html {
   overflow-y: auto;
 }
 
+/* 300px幅までレスポンシブ対応 */
+@media (max-width: 400px) {
+  .projects-container {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+  .projects-sidebar {
+    padding: 0.5rem;
+  }
+  .projects-main {
+    padding: 0.5rem;
+  }
+  .split-view {
+    grid-template-columns: 1fr;
+    height: auto;
+  }
+  .code-view,
+  .demo-view {
+    padding: 0.5rem;
+    border-right: none;
+  }
+}
+
 .projects-sidebar ul {
   list-style: none;
   padding: 0;

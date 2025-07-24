@@ -49,7 +49,7 @@ export const ProjectCardList: React.FC<ProjectCardListProps> = ({ locale, catego
                 </button>
               )}
             </div>
-            <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-6 grid-cols-1 md:grid-cols-2 lg:grid-cols-3">
               {items.map((item) => (
                 <ProjectCard key={item.slug} {...item} />
               ))}
