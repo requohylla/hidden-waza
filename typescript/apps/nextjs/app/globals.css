@@ -110,3 +110,97 @@ body, html {
   padding: 1rem;
   overflow: auto;
 }
+
+/* Highlight.js スタイル (VS Code Dark テーマ) */
+.hljs {
+  background: #1e1e1e !important;
+  color: #d4d4d4 !important;
+}
+
+.hljs-keyword {
+  color: #569cd6 !important;
+}
+
+.hljs-string {
+  color: #ce9178 !important;
+}
+
+.hljs-comment {
+  color: #6a9955 !important;
+}
+
+.hljs-number {
+  color: #b5cea8 !important;
+}
+
+.hljs-function {
+  color: #dcdcaa !important;
+}
+
+.hljs-variable {
+  color: #9cdcfe !important;
+}
+
+.hljs-title {
+  color: #dcdcaa !important;
+}
+
+.hljs-type {
+  color: #4ec9b0 !important;
+}
+
+.hljs-built_in {
+  color: #4ec9b0 !important;
+}
+
+.hljs-literal {
+  color: #569cd6 !important;
+}
+
+.hljs-attr {
+  color: #92c5f8 !important;
+}
+
+.hljs-tag {
+  color: #569cd6 !important;
+}
+
+/* Markdown プロセスモディファイア */
+.prose {
+  line-height: 1.6;
+}
+
+.prose h1, .prose h2, .prose h3 {
+  margin-top: 0;
+}
+
+.prose code:not(pre code) {
+  font-size: 0.875em;
+}
+
+.prose pre {
+  margin: 1rem 0;
+}
+
+.prose pre code {
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
+/* スクロールバーのスタイリング */
+.prose pre::-webkit-scrollbar {
+  height: 8px;
+}
+
+.prose pre::-webkit-scrollbar-track {
+  background: #2d2d2d;
+}
+
+.prose pre::-webkit-scrollbar-thumb {
+  background: #555;
+  border-radius: 4px;
+}
+
+.prose pre::-webkit-scrollbar-thumb:hover {
+  background: #777;
+}

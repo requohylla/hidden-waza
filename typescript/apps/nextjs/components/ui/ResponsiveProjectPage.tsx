@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { InformationCircleIcon, ArrowsPointingOutIcon, Squares2X2Icon } from '@heroicons/react/24/outline';
+import ReactMarkdown from 'react-markdown';
+import rehypeHighlight from 'rehype-highlight';
 
 type Props = {
   markdown: string;
@@ -163,9 +165,31 @@ export default function ResponsiveProjectPage({ markdown, Demo }: Props) {
               >
                 ×
               </button>
-              <pre className="whitespace-pre-wrap text-sm">
-                <code>{markdown}</code>
-              </pre>
+              <div className="prose prose-sm max-w-none">
+                <ReactMarkdown
+                  rehypePlugins={[rehypeHighlight]}
+                  components={{
+                    h1: ({node, ...props}) => <h1 className="text-xl font-bold text-gray-900 mb-3 pb-2 border-b border-gray-200" {...props} />,
+                    h2: ({node, ...props}) => <h2 className="text-lg font-semibold text-gray-800 mb-2 mt-4" {...props} />,
+                    h3: ({node, ...props}) => <h3 className="text-base font-medium text-gray-700 mb-2 mt-3" {...props} />,
+                    p: ({node, ...props}) => <p className="text-gray-600 mb-2 leading-relaxed text-sm" {...props} />,
+                    code: ({node, ...props}: any) =>
+                      props.inline
+                        ? <code className="bg-gray-100 text-red-600 px-1 py-0.5 rounded text-xs font-mono" {...props} />
+                        : <code className="block bg-gray-900 text-gray-100 p-3 rounded-lg overflow-x-auto text-xs font-mono" {...props} />,
+                    pre: ({node, ...props}) => <pre className="bg-gray-900 rounded-lg overflow-x-auto mb-3" {...props} />,
+                    ul: ({node, ...props}) => <ul className="list-disc list-inside text-gray-600 mb-2 space-y-0.5 text-sm" {...props} />,
+                    ol: ({node, ...props}) => <ol className="list-decimal list-inside text-gray-600 mb-2 space-y-0.5 text-sm" {...props} />,
+                    li: ({node, ...props}) => <li className="ml-1" {...props} />,
+                    blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-blue-500 pl-3 italic text-gray-700 my-3 text-sm" {...props} />,
+                    a: ({node, ...props}) => <a className="text-blue-600 hover:text-blue-800 underline" {...props} />,
+                    strong: ({node, ...props}) => <strong className="font-semibold text-gray-900" {...props} />,
+                    em: ({node, ...props}) => <em className="italic text-gray-700" {...props} />,
+                  }}
+                >
+                  {markdown}
+                </ReactMarkdown>
+              </div>
             </div>
           </div>
         )}
@@ -243,17 +267,39 @@ export default function ResponsiveProjectPage({ markdown, Demo }: Props) {
 
         {/* 右側：説明欄 */}
         <div
-          className="bg-gray-50 border-l border-gray-200 overflow-auto"
+          className="bg-white border-l border-gray-200 overflow-auto"
           style={{
             width: `${100 - splitRatio}%`,
             minWidth: '200px',
             flexShrink: 0
           }}
         >
-          <div className="p-4">
-            <pre className="whitespace-pre-wrap text-sm">
-              <code>{markdown}</code>
-            </pre>
+          <div className="p-6">
+            <div className="prose prose-sm max-w-none">
+              <ReactMarkdown
+                rehypePlugins={[rehypeHighlight]}
+                components={{
+                  h1: ({node, ...props}) => <h1 className="text-2xl font-bold text-gray-900 mb-4 pb-2 border-b border-gray-200" {...props} />,
+                  h2: ({node, ...props}) => <h2 className="text-xl font-semibold text-gray-800 mb-3 mt-6" {...props} />,
+                  h3: ({node, ...props}) => <h3 className="text-lg font-medium text-gray-700 mb-2 mt-4" {...props} />,
+                  p: ({node, ...props}) => <p className="text-gray-600 mb-3 leading-relaxed" {...props} />,
+                  code: ({node, ...props}: any) =>
+                    props.inline
+                      ? <code className="bg-gray-100 text-red-600 px-1.5 py-0.5 rounded text-sm font-mono" {...props} />
+                      : <code className="block bg-gray-900 text-gray-100 p-4 rounded-lg overflow-x-auto text-sm font-mono" {...props} />,
+                  pre: ({node, ...props}) => <pre className="bg-gray-900 rounded-lg overflow-x-auto mb-4" {...props} />,
+                  ul: ({node, ...props}) => <ul className="list-disc list-inside text-gray-600 mb-3 space-y-1" {...props} />,
+                  ol: ({node, ...props}) => <ol className="list-decimal list-inside text-gray-600 mb-3 space-y-1" {...props} />,
+                  li: ({node, ...props}) => <li className="ml-2" {...props} />,
+                  blockquote: ({node, ...props}) => <blockquote className="border-l-4 border-blue-500 pl-4 italic text-gray-700 my-4" {...props} />,
+                  a: ({node, ...props}) => <a className="text-blue-600 hover:text-blue-800 underline" {...props} />,
+                  strong: ({node, ...props}) => <strong className="font-semibold text-gray-900" {...props} />,
+                  em: ({node, ...props}) => <em className="italic text-gray-700" {...props} />,
+                }}
+              >
+                {markdown}
+              </ReactMarkdown>
+            </div>
           </div>
         </div>
       </div>
