@@ -2,12 +2,16 @@ import { promises as fs } from 'fs';
 import path from 'path';
 import { notFound } from 'next/navigation';
 
+// Client Component
+import ResponsiveProjectPage from '@/components/ui/ResponsiveProjectPage';
+
 export async function generateStaticParams() {
   const base = path.join(process.cwd(), 'projects', 'work');
   const names = await fs.readdir(base);
   return names.map((slug) => ({ slug }));
 }
 
+// サーバーコンポーネント
 export default async function ProjectPage({
   params,
 }: {
@@ -26,16 +30,6 @@ export default async function ProjectPage({
 
   const Demo = (await import(`../../../../../projects/work/${slug}/Demo`)).default;
 
-  return (
-    <div className="split-view">
-      <section className="code-view">
-        <pre>
-          <code>{markdown}</code>
-        </pre>
-      </section>
-      <section className="demo-view">
-        <Demo />
-      </section>
-    </div>
-  );
+  // Client Componentへprops渡し
+  return <ResponsiveProjectPage markdown={markdown} Demo={Demo} />;
 }
