@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { InformationCircleIcon } from '@heroicons/react/24/outline';
+import { InformationCircleIcon, ArrowsPointingOutIcon, Squares2X2Icon } from '@heroicons/react/24/outline';
 
 type Props = {
   markdown: string;
@@ -77,14 +77,24 @@ export default function ResponsiveProjectPage({ markdown, Demo }: Props) {
     setIsFullScreen(!isFullScreen);
   };
 
-  // マウント前は最小限の表示
+  // ローディング画面
   if (!mounted) {
     return (
-      <div className="relative">
-        <Demo />
+      <div className="w-full h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="inline-block animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-4"></div>
+          <p className="text-gray-600 text-sm">読み込み中...</p>
+        </div>
       </div>
     );
   }
+
+  // ツールバーコンポーネント
+  const Toolbar = ({ children }: { children: React.ReactNode }) => (
+    <div className="h-12 bg-gray-50 border-b border-gray-200 flex items-center px-4 flex-shrink-0">
+      {children}
+    </div>
+  );
 
   if (isMobile) {
     // スマホ：機能メイン＋説明ボタンのみ（説明欄は完全非表示）
@@ -166,70 +176,86 @@ export default function ResponsiveProjectPage({ markdown, Demo }: Props) {
   // PC表示：リサイズ可能な分割ビューまたは1画面表示
   if (isFullScreen) {
     return (
-      <div className="relative w-full h-screen">
-        <Demo />
-        <button
-          className="absolute top-4 right-4 z-10 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow-lg transition-colors"
-          onClick={toggleFullScreen}
-        >
-          2画面表示
-        </button>
+      <div className="w-full h-screen flex flex-col">
+        <Toolbar>
+          <button
+            className="bg-white hover:bg-gray-50 text-gray-700 p-2 rounded-md shadow-sm border border-gray-200 transition-all duration-200 flex items-center gap-2"
+            onClick={toggleFullScreen}
+            aria-label="2画面表示に戻る"
+            title="2画面表示に戻る"
+          >
+            <Squares2X2Icon className="w-4 h-4" />
+            <span className="text-sm">2画面表示</span>
+          </button>
+        </Toolbar>
+        
+        {/* メインコンテンツ領域 */}
+        <div className="flex-1 bg-white overflow-auto">
+          <Demo />
+        </div>
       </div>
     );
   }
 
   return (
-    <div
-      ref={containerRef}
-      className="w-full h-screen relative"
-      style={{ 
-        display: 'flex',
-        flexDirection: 'row',
-        cursor: isResizing ? 'ew-resize' : 'default'
-      }}
-    >
-      {/* 左側：説明欄 */}
-      <div
-        className="bg-gray-50 border-r border-gray-200 overflow-auto"
-        style={{ 
-          width: `${splitRatio}%`, 
-          minWidth: '200px',
-          flexShrink: 0
-        }}
-      >
-        <div className="p-4">
-          <pre className="whitespace-pre-wrap text-sm">
-            <code>{markdown}</code>
-          </pre>
-        </div>
-      </div>
-
-      {/* リサイザー */}
-      <div
-        className="bg-gray-300 hover:bg-gray-400 cursor-ew-resize transition-colors"
-        style={{
-          width: '4px',
-          flexShrink: 0
-        }}
-        onMouseDown={handleResizerMouseDown}
-      />
-
-      {/* 右側：デモ画面 */}
-      <div
-        className="relative overflow-auto"
-        style={{ 
-          width: `${100 - splitRatio}%`,
-          minWidth: '200px',
-          flexShrink: 0
-        }}
-      >
-        <Demo />
+    <div className="w-full h-screen flex flex-col">
+      <Toolbar>
         <button
-          className="absolute top-4 right-4 z-10 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded shadow-lg transition-colors"
+          className="bg-white hover:bg-gray-50 text-gray-700 p-2 rounded-md shadow-sm border border-gray-200 transition-all duration-200 flex items-center gap-2"
           onClick={toggleFullScreen}
+          aria-label="1画面表示に切り替え"
+          title="1画面表示に切り替え"
         >
-          1画面表示
+          <ArrowsPointingOutIcon className="w-4 h-4" />
+          <span className="text-sm">1画面表示</span>
         </button>
+      </Toolbar>
+
+      {/* メインコンテンツ領域 */}
+      <div
+        ref={containerRef}
+        className="flex-1 flex"
+        style={{
+          cursor: isResizing ? 'ew-resize' : 'default'
+        }}
+      >
+        {/* 左側：デモ画面 */}
+        <div
+          className="bg-white overflow-auto"
+          style={{
+            width: `${splitRatio}%`,
+            minWidth: '200px',
+            flexShrink: 0
+          }}
+        >
+          <Demo />
+        </div>
+
+        {/* リサイザー */}
+        <div
+          className="bg-gray-300 hover:bg-gray-400 cursor-ew-resize transition-colors"
+          style={{
+            width: '4px',
+            flexShrink: 0
+          }}
+          onMouseDown={handleResizerMouseDown}
+        />
+
+        {/* 右側：説明欄 */}
+        <div
+          className="bg-gray-50 border-l border-gray-200 overflow-auto"
+          style={{
+            width: `${100 - splitRatio}%`,
+            minWidth: '200px',
+            flexShrink: 0
+          }}
+        >
+          <div className="p-4">
+            <pre className="whitespace-pre-wrap text-sm">
+              <code>{markdown}</code>
+            </pre>
+          </div>
+        </div>
       </div>
     </div>
   );
