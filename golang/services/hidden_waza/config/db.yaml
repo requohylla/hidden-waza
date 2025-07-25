@@ -1,7 +1,0 @@
-# MariaDB接続設定
-database:
-  host: localhost
-  port: 3306
-  user: user
-  password: password
-  name: hidden_waza
