@@ -1,9 +1,9 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 
-	"database/sql"
 	"log"
 
 	_ "github.com/go-sql-driver/mysql"
@@ -42,10 +42,18 @@ func main() {
 	e.Use(middleware.Recover())
 
 	e.GET("/", hello)
-	e.POST("/api/v1/resume", h.CreateResume)
-	e.GET("/api/v1/resume", h.GetResumes)
+	e.POST("/api/v1/resume", wrapHTTPHandler(h.CreateResume))
+	e.GET("/api/v1/resume", wrapHTTPHandler(h.GetResumes))
 
 	e.Logger.Fatal(e.Start(":8080"))
+}
+
+// http.HandlerFuncをecho.HandlerFuncに変換
+func wrapHTTPHandler(f func(http.ResponseWriter, *http.Request)) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		f(c.Response(), c.Request())
+		return nil
+	}
 }
 
 func hello(c echo.Context) error {

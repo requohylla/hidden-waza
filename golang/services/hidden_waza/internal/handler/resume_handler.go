@@ -3,10 +3,11 @@ package handler
 
 import (
 	"encoding/json"
+	"net/http"
+
 	"github.com/requohylla/hidden-waza/services/hidden_waza/api/v1/dto"
 	"github.com/requohylla/hidden-waza/services/hidden_waza/internal/domain"
 	"github.com/requohylla/hidden-waza/services/hidden_waza/internal/repository"
-	"net/http"
 )
 
 type ResumeHandler struct {
@@ -24,17 +25,46 @@ func (h *ResumeHandler) CreateResume(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	resume := domain.Resume{
-		Name:        req.Name,
 		Title:       req.Title,
-		Description: req.Description,
-		Skills:      req.Skills,
-		Experience:  req.Experience,
+		Summary:     req.Summary,
+		Skills:      convertSkillDTOs(req.Skills),
+		Experiences: convertExperienceDTOs(req.Experiences),
 	}
 	if err := h.repo.Create(&resume); err != nil {
 		http.Error(w, "DB error", http.StatusInternalServerError)
 		return
 	}
 	w.WriteHeader(http.StatusCreated)
+}
+
+// SkillDTOからdomain.Skillへの変換
+func convertSkillDTOs(dtos []dto.SkillDTO) []domain.Skill {
+	var skills []domain.Skill
+	for _, s := range dtos {
+		skills = append(skills, domain.Skill{
+			Type:     s.Type,
+			MasterID: s.MasterID,
+			Level:    s.Level,
+			Years:    s.Years,
+		})
+	}
+	return skills
+}
+
+// ExperienceDTOからdomain.Experienceへの変換
+func convertExperienceDTOs(dtos []dto.ExperienceDTO) []domain.Experience {
+	var exps []domain.Experience
+	for _, e := range dtos {
+		exps = append(exps, domain.Experience{
+			Company:      e.Company,
+			Position:     e.Position,
+			StartDate:    e.StartDate,
+			EndDate:      e.EndDate,
+			Description:  e.Description,
+			PortfolioURL: e.PortfolioURL,
+		})
+	}
+	return exps
 }
 
 func (h *ResumeHandler) GetResumes(w http.ResponseWriter, r *http.Request) {
