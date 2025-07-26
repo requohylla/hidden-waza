@@ -9,8 +9,7 @@
 2. 以下のコマンドでSeederを実行します。
 
 ```sh
-cd services/hidden_waza/cmd/hidden_waza
-go run seeder.go
+run ./services/hidden_waza/db/seeder/cmd/seeder 
 ```
 
 または、main.go等から `seeder.RunSeeder()` を呼び出してください。

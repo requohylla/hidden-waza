@@ -1,6 +1,5 @@
-// seeder.go: dummydataを使って各テーブルにダミーデータを投入
-
-package seeder
+// main.go: dummydataを使って各テーブルにダミーデータを投入
+package main
 
 import (
 	"fmt"
@@ -23,8 +22,7 @@ const (
 	experienceCount = 10000
 )
 
-// RunSeeder は全テーブルにダミーデータを投入する
-func RunSeeder() {
+func main() {
 	cfg, err := config.LoadDBConfig("services/hidden_waza/config/db.yaml")
 	if err != nil {
 		log.Fatalf("DB設定読み込み失敗: %v", err)
