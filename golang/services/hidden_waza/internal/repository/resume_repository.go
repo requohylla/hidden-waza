@@ -23,3 +23,15 @@ func (r *ResumeRepository) GetAll() ([]domain.Resume, error) {
 	err := r.db.Find(&resumes).Error
 	return resumes, err
 }
+
+func (r *ResumeRepository) GetByUserID(userID uint) ([]domain.Resume, error) {
+	var resumes []domain.Resume
+	err := r.db.Where("user_id = ?", userID).Find(&resumes).Error
+	return resumes, err
+}
+
+func (r *ResumeRepository) GetByID(id uint) (*domain.Resume, error) {
+	var resume domain.Resume
+	err := r.db.First(&resume, id).Error
+	return &resume, err
+}

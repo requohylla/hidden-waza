@@ -19,14 +19,14 @@ import (
 
 func main() {
 	// DB設定読み込み
-	cfg, err := config.LoadDBConfig("config/db.yaml")
+	cfg, err := config.LoadDBConfig("services/hidden_waza/config/db.yaml")
 	if err != nil {
 		log.Fatal("DB設定読み込み失敗: ", err)
 	}
 	dsn := cfg.Database.User + ":" + cfg.Database.Password +
 		"@tcp(" + cfg.Database.Host + ":" +
 		fmt.Sprintf("%d", cfg.Database.Port) + ")/" +
-		cfg.Database.Name + "?parseTime=true"
+		cfg.Database.Name + "?parseTime=true&charset=utf8mb4"
 	db, err := gorm.Open(mysql.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatal("DB接続失敗: ", err)
@@ -40,11 +40,15 @@ func main() {
 
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
+	// URL末尾にあるスラッシュを省く
+	e.Pre(middleware.RemoveTrailingSlash())
 
 	e.GET("/", hello)
-	e.POST("/api/v1/resume", wrapHTTPHandler(h.CreateResume))
-	e.GET("/api/v1/resume", wrapHTTPHandler(h.GetResumes))
+	e.POST("/api/v1/resume/post", wrapHTTPHandler(h.CreateResume))
+	e.GET("/api/v1/resume/get", wrapHTTPHandler(h.GetResumes))
+	e.GET("/api/v1/resume/get/:id", h.GetResumeByID)
 
+	e.GET("/api/v1/resume/get/user/:user_id", h.GetResumesByUserID)
 	e.Logger.Fatal(e.Start(":8080"))
 }
 
