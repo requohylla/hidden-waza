@@ -1,3 +1,4 @@
+// user.go: usersテーブル用ドメインモデル
 package domain
 
 type User struct {
@@ -7,4 +8,8 @@ type User struct {
 	PasswordHash string `json:"password_hash"`
 	CreatedAt    string `json:"created_at"`
 	UpdatedAt    string `json:"updated_at"`
+}
+
+func (User) TableName() string {
+	return "users"
 }

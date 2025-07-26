@@ -1,3 +1,4 @@
+// experience.go: experiencesテーブル用ドメインモデル
 package domain
 
 type Experience struct {
@@ -9,4 +10,8 @@ type Experience struct {
 	EndDate      string `json:"end_date"`
 	Description  string `json:"description"`
 	PortfolioURL string `json:"portfolio_url"`
+}
+
+func (Experience) TableName() string {
+	return "experiences"
 }

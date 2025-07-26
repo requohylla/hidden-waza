@@ -1,7 +1,11 @@
 // tool.go: toolsテーブル用ダミーデータ生成
 package dummydata
 
-import "github.com/requohylla/hidden-waza/services/hidden_waza/internal/domain"
+import (
+	"fmt"
+
+	"github.com/requohylla/hidden-waza/services/hidden_waza/internal/domain"
+)
 
 func GenerateTools(count int) []domain.Tool {
 	tools := make([]domain.Tool, count)
@@ -14,7 +18,7 @@ func GenerateTools(count int) []domain.Tool {
 		if i < len(names) {
 			name = names[i]
 		} else {
-			name = "DummyTool_" + string(rune(i+1))
+			name = "DummyTool_" + fmt.Sprintf("%d", i+1)
 		}
 		tools[i] = domain.Tool{
 			ID:   uint(i + 1),

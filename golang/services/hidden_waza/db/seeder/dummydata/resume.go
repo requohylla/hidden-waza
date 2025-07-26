@@ -1,5 +1,4 @@
 // resume.go: resumesテーブル用ダミーデータ生成
-
 package dummydata
 
 import (
@@ -13,13 +12,13 @@ import (
 func GenerateResumes(n int) []domain.Resume {
 	rand.Seed(time.Now().UnixNano())
 	resumes := make([]domain.Resume, n)
-	t, _ := time.Parse(time.RFC3339, "2025-01-01T00:00:00Z")
+	now := time.Now()
 	for i := 0; i < n; i++ {
 		resumes[i] = domain.Resume{
 			Title:     fmt.Sprintf("ダミーレジュメ%03d", i+1),
 			UserID:    uint(rand.Intn(100) + 1),
-			CreatedAt: t,
-			UpdatedAt: t,
+			CreatedAt: now,
+			UpdatedAt: now,
 		}
 	}
 	return resumes

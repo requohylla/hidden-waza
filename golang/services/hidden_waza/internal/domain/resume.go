@@ -1,4 +1,4 @@
-// 職務経歴書モデル
+// resume.go: resumesテーブル用ドメインモデル
 package domain
 
 import "time"
@@ -12,4 +12,8 @@ type Resume struct {
 	Experiences []Experience `json:"experiences"`
 	CreatedAt   time.Time    `json:"created_at"`
 	UpdatedAt   time.Time    `json:"updated_at"`
+}
+
+func (Resume) TableName() string {
+	return "resumes"
 }

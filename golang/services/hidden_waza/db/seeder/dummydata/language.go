@@ -1,7 +1,11 @@
 // language.go: languagesテーブル用ダミーデータ生成
 package dummydata
 
-import "github.com/requohylla/hidden-waza/services/hidden_waza/internal/domain"
+import (
+	"fmt"
+
+	"github.com/requohylla/hidden-waza/services/hidden_waza/internal/domain"
+)
 
 func GenerateLanguages(count int) []domain.Language {
 	languages := make([]domain.Language, count)
@@ -11,7 +15,7 @@ func GenerateLanguages(count int) []domain.Language {
 		if i < len(names) {
 			name = names[i]
 		} else {
-			name = "DummyLanguage_" + string(rune(i+1))
+			name = "DummyLanguage_" + fmt.Sprintf("%d", i+1)
 		}
 		languages[i] = domain.Language{
 			ID:   uint(i + 1),
