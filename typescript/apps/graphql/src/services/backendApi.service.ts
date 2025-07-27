@@ -19,8 +19,24 @@ export class BackendApiService {
   }
 
   async login(email: string, password: string) {
-    const res = await axios.post(`${BASE_URL}/login`, { email, password });
-    return res.data;
+    // デバッグ用ログ出力
+    console.log('BFF login request:', {
+      url: `${BASE_URL}/login`,
+      email,
+      password
+    });
+    try {
+      const res = await axios.post(
+        `${BASE_URL}/login`,
+        JSON.stringify({ email, password }),
+        { headers: { 'Content-Type': 'application/json' } }
+      );
+      console.log('BFF login response:', res.data);
+      return res.data;
+    } catch (err) {
+      console.error('BFF login error:', err?.response?.data || err);
+      throw err;
+    }
   }
 
   async register(username: string, email: string, password: string) {

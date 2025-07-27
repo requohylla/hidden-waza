@@ -145,7 +145,7 @@ curl -X POST http://localhost:8080/api/v1/signup \
 ``` sh
 curl -X POST http://localhost:8080/api/v1/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"testuser@example.com","password":"password123"}'d
+  -d '{"email":"testuser@example.com","password":"password123"}'
 ```
 
 ### 5.3 レスポンス・エラー確認

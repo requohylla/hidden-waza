@@ -34,21 +34,24 @@ export const authApi = {
     const mutation = gql`
       mutation Login($input: LoginInput!) {
         login(input: $input) {
-          id
-          username
-          email
+          user {
+            id
+            username
+            email
+          }
+          token
         }
       }
     `;
-    const data = await client.request<{ login: { id: number; username: string; email: string } }>(mutation, { input: credentials });
+    const data = await client.request<{ login: { user: { id: number; username: string; email: string }, token: string } }>(mutation, { input: credentials });
     return {
       user: {
-        id: data.login.id,
-        name: data.login.username,
-        email: data.login.email,
+        id: data.login.user.id,
+        name: data.login.user.username,
+        email: data.login.user.email,
         joinDate: ''
       },
-      token: 'dummy-token'
+      token: data.login.token
     };
   },
   async getProfile() {
