@@ -1,143 +1,232 @@
-// 職務経歴書デモ（技術証明登録・履歴表示）
-// バックエンドAPI・BFFは別途実装予定。fetch部分はコメントで明記。
+// 職務経歴書デモ（本格版）
+// ログイン → プロフィール → 経歴書作成・編集の完全なフロー
 
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { LoginScreen } from './components/LoginScreen'
+import { ProfileScreen } from './components/ProfileScreen'
+import { ResumeFormScreen } from './components/ResumeFormScreen'
+import { Navigation } from './components/ui/Navigation'
+import { authApi, resumeApi, skillApi, User, Resume } from './components/api/mockApi'
+import { getSkills } from './components/data/skills'
 
-type Proof = {
-  id: number
-  title: string
-  description: string
-  date: string
-  skill: string
-  verified: boolean
+type View = 'login' | 'profile' | 'create' | 'edit'
+
+interface AppState {
+  currentView: View
+  user: User | null
+  resumes: Resume[]
+  skills: string[]
+  editingResume: Resume | null
+  isLoading: boolean
 }
 
 export default function Demo() {
-  const [form, setForm] = useState({
-    title: '',
-    description: '',
-    date: '',
-    skill: ''
+  const [state, setState] = useState<AppState>({
+    currentView: 'login',
+    user: null,
+    resumes: [],
+    skills: [],
+    editingResume: null,
+    isLoading: false
   })
-  const [errors, setErrors] = useState<{ [key: string]: string }>({})
-  const [proofs, setProofs] = useState<Proof[]>([])
 
-  // バリデーション
-  const validate = () => {
-    const newErrors: { [key: string]: string } = {}
-    if (!form.title) newErrors.title = 'タイトルは必須です'
-    if (!form.description) newErrors.description = '内容は必須です'
-    if (!form.date) newErrors.date = '日付は必須です'
-    if (!form.skill) newErrors.skill = 'スキルは必須です'
-    return newErrors
+  // 初期化：スキル一覧を取得
+  useEffect(() => {
+    const loadSkills = async () => {
+      try {
+        const skills = getSkills()
+        setState(prev => ({ ...prev, skills }))
+      } catch (error) {
+        console.error('スキル読み込みエラー:', error)
+      }
+    }
+    loadSkills()
+  }, [])
+
+  // ログイン処理
+  const handleLogin = async (credentials: { email: string; password: string }) => {
+    setState(prev => ({ ...prev, isLoading: true }))
+    
+    try {
+      const { user } = await authApi.login(credentials)
+      const resumes = await resumeApi.getResumes()
+      
+      setState(prev => ({
+        ...prev,
+        user,
+        resumes,
+        currentView: 'profile',
+        isLoading: false
+      }))
+    } catch (error) {
+      setState(prev => ({ ...prev, isLoading: false }))
+      throw error
+    }
   }
 
-  // 登録（APIは未実装。fetch部分はコメント）
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    const v = validate()
-    setErrors(v)
-    if (Object.keys(v).length > 0) return
-
-    // TODO: バックエンドAPI（POST /api/workproof）で登録
-    // const res = await fetch('/api/workproof', { method: 'POST', body: JSON.stringify(form) })
-
-    // 仮登録（フロントのみ）
-    setProofs([
-      {
-        id: Date.now(),
-        ...form,
-        verified: false
-      },
-      ...proofs
-    ])
-    setForm({ title: '', description: '', date: '', skill: '' })
+  // ナビゲーション処理
+  const handleNavigate = (view: 'profile' | 'create' | 'logout') => {
+    if (view === 'logout') {
+      setState({
+        currentView: 'login',
+        user: null,
+        resumes: [],
+        skills: state.skills,
+        editingResume: null,
+        isLoading: false
+      })
+    } else {
+      setState(prev => ({
+        ...prev,
+        currentView: view,
+        editingResume: null
+      }))
+    }
   }
 
-  // 履歴取得（APIは未実装。fetch部分はコメント）
-  // useEffect(() => {
-  //   // TODO: バックエンドAPI（GET /api/workproof）で履歴取得
-  //   // fetch('/api/workproof').then(...)
-  // }, [])
+  // 経歴書作成処理
+  const handleCreateResume = async (resumeData: Omit<Resume, 'id' | 'userId' | 'verified' | 'createdAt' | 'updatedAt'>) => {
+    setState(prev => ({ ...prev, isLoading: true }))
+    
+    try {
+      const newResume = await resumeApi.createResume(resumeData)
+      const updatedResumes = await resumeApi.getResumes()
+      
+      setState(prev => ({
+        ...prev,
+        resumes: updatedResumes,
+        currentView: 'profile',
+        isLoading: false
+      }))
+    } catch (error) {
+      setState(prev => ({ ...prev, isLoading: false }))
+      throw error
+    }
+  }
 
+  // 経歴書編集処理
+  const handleEditResume = (resumeId: number) => {
+    const resume = state.resumes.find(r => r.id === resumeId)
+    if (resume) {
+      setState(prev => ({
+        ...prev,
+        editingResume: resume,
+        currentView: 'edit'
+      }))
+    }
+  }
+
+  // 経歴書更新処理
+  const handleUpdateResume = async (resumeData: Omit<Resume, 'id' | 'userId' | 'verified' | 'createdAt' | 'updatedAt'>) => {
+    if (!state.editingResume) return
+    
+    setState(prev => ({ ...prev, isLoading: true }))
+    
+    try {
+      await resumeApi.updateResume(state.editingResume.id, resumeData)
+      const updatedResumes = await resumeApi.getResumes()
+      
+      setState(prev => ({
+        ...prev,
+        resumes: updatedResumes,
+        currentView: 'profile',
+        editingResume: null,
+        isLoading: false
+      }))
+    } catch (error) {
+      setState(prev => ({ ...prev, isLoading: false }))
+      throw error
+    }
+  }
+
+  // 経歴書削除処理
+  const handleDeleteResume = async (resumeId: number) => {
+    if (!confirm('この経歴書を削除しますか？')) return
+    
+    setState(prev => ({ ...prev, isLoading: true }))
+    
+    try {
+      await resumeApi.deleteResume(resumeId)
+      const updatedResumes = await resumeApi.getResumes()
+      
+      setState(prev => ({
+        ...prev,
+        resumes: updatedResumes,
+        isLoading: false
+      }))
+    } catch (error) {
+      setState(prev => ({ ...prev, isLoading: false }))
+      console.error('削除エラー:', error)
+    }
+  }
+
+  // キャンセル処理
+  const handleCancel = () => {
+    setState(prev => ({
+      ...prev,
+      currentView: 'profile',
+      editingResume: null
+    }))
+  }
+
+  // ログイン画面
+  if (state.currentView === 'login') {
+    return (
+      <LoginScreen
+        onLogin={handleLogin}
+        isLoading={state.isLoading}
+      />
+    )
+  }
+
+  // メイン画面（ナビゲーション付き）
   return (
-    <div style={{ maxWidth: 480, margin: '0 auto', padding: 24 }}>
-      <h1 style={{ fontSize: 24, fontWeight: 'bold', marginBottom: 16 }}>職務経歴書（技術証明）</h1>
-      <form onSubmit={handleSubmit} style={{ marginBottom: 32 }}>
-        <div style={{ marginBottom: 12 }}>
-          <label style={{ fontWeight: 'bold' }}>タイトル</label>
-          <input
-            type="text"
-            value={form.title}
-            onChange={e => setForm({ ...form, title: e.target.value })}
-            style={{ width: '100%', border: '1px solid #ccc', padding: 6 }}
+    <div className="min-h-screen bg-gray-50">
+      <Navigation
+        currentUser={state.user || undefined}
+        currentView={state.currentView}
+        onNavigate={handleNavigate}
+      />
+      
+      <main>
+        {state.currentView === 'profile' && state.user && (
+          <ProfileScreen
+            user={state.user}
+            resumes={state.resumes}
+            onCreateNew={() => handleNavigate('create')}
+            onEditResume={handleEditResume}
+            onDeleteResume={handleDeleteResume}
           />
-          {errors.title && <p style={{ color: 'red', fontSize: 12 }}>{errors.title}</p>}
-        </div>
-        <div style={{ marginBottom: 12 }}>
-          <label style={{ fontWeight: 'bold' }}>内容</label>
-          <textarea
-            value={form.description}
-            onChange={e => setForm({ ...form, description: e.target.value })}
-            style={{ width: '100%', border: '1px solid #ccc', padding: 6 }}
+        )}
+        
+        {state.currentView === 'create' && (
+          <ResumeFormScreen
+            skills={state.skills}
+            onSave={handleCreateResume}
+            onCancel={handleCancel}
+            isLoading={state.isLoading}
           />
-          {errors.description && <p style={{ color: 'red', fontSize: 12 }}>{errors.description}</p>}
-        </div>
-        <div style={{ marginBottom: 12 }}>
-          <label style={{ fontWeight: 'bold' }}>日付</label>
-          <input
-            type="date"
-            value={form.date}
-            onChange={e => setForm({ ...form, date: e.target.value })}
-            style={{ width: '100%', border: '1px solid #ccc', padding: 6 }}
+        )}
+        
+        {state.currentView === 'edit' && state.editingResume && (
+          <ResumeFormScreen
+            resume={state.editingResume}
+            skills={state.skills}
+            onSave={handleUpdateResume}
+            onCancel={handleCancel}
+            isLoading={state.isLoading}
           />
-          {errors.date && <p style={{ color: 'red', fontSize: 12 }}>{errors.date}</p>}
-        </div>
-        <div style={{ marginBottom: 12 }}>
-          <label style={{ fontWeight: 'bold' }}>スキル</label>
-          <input
-            type="text"
-            value={form.skill}
-            onChange={e => setForm({ ...form, skill: e.target.value })}
-            style={{ width: '100%', border: '1px solid #ccc', padding: 6 }}
-          />
-          {errors.skill && <p style={{ color: 'red', fontSize: 12 }}>{errors.skill}</p>}
-        </div>
-        <button
-          type="submit"
-          style={{
-            background: '#2563eb',
-            color: '#fff',
-            padding: '8px 24px',
-            borderRadius: 4,
-            border: 'none',
-            fontWeight: 'bold',
-            cursor: 'pointer'
-          }}
-          disabled={Object.keys(errors).length > 0}
-        >
-          登録
-        </button>
-      </form>
-      <h2 style={{ fontSize: 18, fontWeight: 'bold', marginBottom: 8 }}>登録履歴</h2>
-      <ul style={{ listStyle: 'none', padding: 0 }}>
-        {proofs.length === 0 && <li style={{ color: '#888' }}>履歴はありません</li>}
-        {proofs.map(proof => (
-          <li key={proof.id} style={{ border: '1px solid #ccc', borderRadius: 4, padding: 12, marginBottom: 8 }}>
-            <div style={{ fontWeight: 'bold' }}>{proof.title}</div>
-            <div style={{ fontSize: 14 }}>{proof.description}</div>
-            <div style={{ fontSize: 12, color: '#555' }}>{proof.date} / {proof.skill}</div>
-            <div style={{ fontSize: 12 }}>
-              認証: {proof.verified ? '済' : '未'}
-            </div>
-          </li>
-        ))}
-      </ul>
-      <p style={{ marginTop: 24, fontSize: 12, color: '#888' }}>
-        ※バックエンドAPI・BFFは別途実装予定です。現在はフロントのみの仮動作です。
-      </p>
+        )}
+      </main>
+      
+      {/* API情報表示 */}
+      <div className="fixed bottom-4 right-4 bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-700 max-w-xs">
+        <p className="font-semibold mb-1">🔧 開発メモ</p>
+        <p>API: モック実装（別プロジェクトで実装予定）</p>
+        <p>ログイン: tanaka@example.com / password</p>
+      </div>
     </div>
   )
 }
