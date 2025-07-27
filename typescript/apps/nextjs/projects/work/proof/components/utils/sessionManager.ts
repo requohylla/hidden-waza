@@ -12,6 +12,17 @@ export interface SessionData {
   expiresAt: number
 }
 
+export interface FormData {
+  title: string
+  description: string
+  date: string
+  skills: {
+    os: string[]
+    tools: string[]
+    languages: string[]
+  }
+}
+
 const SESSION_KEY = 'resume_app_session'
 const SESSION_DURATION = 24 * 60 * 60 * 1000 // 24時間
 
@@ -108,7 +119,7 @@ export class SessionManager {
   }
 
   // フォームデータ保存
-  static saveFormData(formData: any, formType: 'create' | 'edit'): void {
+  static saveFormData(formData: FormData, formType: 'create' | 'edit'): void {
     try {
       const key = `resume_form_${formType}`
       sessionStorage.setItem(key, JSON.stringify(formData))
@@ -118,7 +129,7 @@ export class SessionManager {
   }
 
   // フォームデータ取得
-  static getFormData(formType: 'create' | 'edit'): any | null {
+  static getFormData(formType: 'create' | 'edit'): FormData | null {
     try {
       const key = `resume_form_${formType}`
       const data = sessionStorage.getItem(key)

@@ -1,32 +1,35 @@
 import { useState, useEffect } from 'react'
 import { ArrowLeftIcon } from '@heroicons/react/24/outline'
 import { Button } from './ui/Button'
-import { InputField, TextareaField, SelectField } from './ui/FormField'
+import { InputField, TextareaField, MultiSelectField } from './ui/FormField'
 import { SessionManager } from './utils/sessionManager'
+import { SKILLS_BY_CATEGORY, SKILL_CATEGORY_LABELS, SkillCategory, getAllCategories, getSkillsByCategory } from './data/skills'
 
 interface Resume {
   id?: number
   title: string
   description: string
   date: string
-  skill: string
+  skills: {
+    os: string[]
+    tools: string[]
+    languages: string[]
+  }
   verified?: boolean
 }
 
 interface ResumeFormScreenProps {
   resume?: Resume
-  skills: string[]
   onSave: (resumeData: Omit<Resume, 'id' | 'verified'>) => Promise<void>
   onCancel: () => void
   isLoading?: boolean
 }
 
-export function ResumeFormScreen({ 
-  resume, 
-  skills, 
-  onSave, 
-  onCancel, 
-  isLoading = false 
+export function ResumeFormScreen({
+  resume,
+  onSave,
+  onCancel,
+  isLoading = false
 }: ResumeFormScreenProps) {
   const formType = resume ? 'edit' : 'create'
   
@@ -34,7 +37,11 @@ export function ResumeFormScreen({
     title: string
     description: string
     date: string
-    skill: string
+    skills: {
+      os: string[]
+      tools: string[]
+      languages: string[]
+    }
   }
   
   // 保存されたフォームデータを復元
@@ -49,7 +56,11 @@ export function ResumeFormScreen({
       title: resume?.title || '',
       description: resume?.description || '',
       date: resume?.date || '',
-      skill: resume?.skill || ''
+      skills: resume?.skills || {
+        os: [],
+        tools: [],
+        languages: []
+      }
     }
   }
 
@@ -65,7 +76,7 @@ export function ResumeFormScreen({
           title: resume.title,
           description: resume.description,
           date: resume.date,
-          skill: resume.skill
+          skills: resume.skills
         })
       }
     }
@@ -73,7 +84,8 @@ export function ResumeFormScreen({
 
   // フォームデータ変更時に自動保存
   useEffect(() => {
-    if (formData.title || formData.description || formData.date || formData.skill) {
+    if (formData.title || formData.description || formData.date ||
+        formData.skills.os.length > 0 || formData.skills.tools.length > 0 || formData.skills.languages.length > 0) {
       SessionManager.saveFormData(formData, formType)
     }
   }, [formData, formType])
@@ -93,8 +105,8 @@ export function ResumeFormScreen({
       newErrors.date = '日付は必須です'
     }
     
-    if (!formData.skill) {
-      newErrors.skill = 'スキルの選択は必須です'
+    if (formData.skills.os.length === 0 && formData.skills.tools.length === 0 && formData.skills.languages.length === 0) {
+      newErrors.skills = '少なくとも1つのスキルを選択してください'
     }
     
     return newErrors
@@ -125,12 +137,22 @@ export function ResumeFormScreen({
     onCancel()
   }
 
-  const handleInputChange = (field: keyof FormData) => (
-    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
+  const handleInputChange = (field: keyof Omit<FormData, 'skills'>) => (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     setFormData((prev: FormData) => ({ ...prev, [field]: e.target.value }))
     if (errors[field as string]) {
       setErrors((prev: { [key: string]: string }) => ({ ...prev, [field as string]: '' }))
+    }
+  }
+
+  const handleSkillsChange = (category: keyof FormData['skills']) => (values: string[]) => {
+    setFormData((prev: FormData) => ({
+      ...prev,
+      skills: { ...prev.skills, [category]: values }
+    }))
+    if (errors.skills) {
+      setErrors((prev: { [key: string]: string }) => ({ ...prev, skills: '' }))
     }
   }
 
@@ -181,30 +203,46 @@ export function ResumeFormScreen({
             required
           />
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <InputField
-              label="実施日"
-              type="date"
-              value={formData.date}
-              onChange={handleInputChange('date')}
-              error={errors.date}
-              required
-            />
+          <InputField
+            label="実施日"
+            type="date"
+            value={formData.date}
+            onChange={handleInputChange('date')}
+            error={errors.date}
+            required
+            className="md:w-1/2"
+          />
 
-            <SelectField
-              label="主要スキル"
-              value={formData.skill}
-              onChange={handleInputChange('skill')}
-              error={errors.skill}
-              required
-            >
-              <option value="">スキルを選択してください</option>
-              {skills.map((skill) => (
-                <option key={skill} value={skill}>
-                  {skill}
-                </option>
-              ))}
-            </SelectField>
+          <div className="space-y-6">
+            <div className="border-b border-gray-200 pb-4">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">スキル選択</h3>
+              <p className="text-sm text-gray-600 mb-6">
+                各カテゴリーから関連するスキルを選択してください（複数選択可能）
+              </p>
+            </div>
+            
+            {getAllCategories().map((category) => (
+              <div key={category} className="bg-gray-50 rounded-lg p-4">
+                <MultiSelectField
+                  label={SKILL_CATEGORY_LABELS[category]}
+                  values={formData.skills[category]}
+                  options={getSkillsByCategory(category)}
+                  onChange={handleSkillsChange(category)}
+                  placeholder={`${SKILL_CATEGORY_LABELS[category]}を選択してください`}
+                />
+                {formData.skills[category].length > 0 && (
+                  <div className="mt-2 text-xs text-gray-500">
+                    {formData.skills[category].length}個のスキルが選択されています
+                  </div>
+                )}
+              </div>
+            ))}
+            
+            {errors.skills && (
+              <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
+                {errors.skills}
+              </div>
+            )}
           </div>
 
           <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
@@ -236,9 +274,39 @@ export function ResumeFormScreen({
           <p className="text-gray-600 text-sm mb-3">
             {formData.description || '詳細説明を入力してください'}
           </p>
-          <div className="flex space-x-4 text-xs text-gray-500">
-            <span>日付: {formData.date || '未設定'}</span>
-            <span>スキル: {formData.skill || '未選択'}</span>
+          <div className="space-y-2">
+            <div className="text-xs text-gray-500">
+              <span>日付: {formData.date || '未設定'}</span>
+            </div>
+            <div className="space-y-2">
+              {getAllCategories().map((category) => {
+                const categorySkills = formData.skills[category]
+                if (categorySkills.length === 0) return null
+                
+                return (
+                  <div key={category}>
+                    <span className="text-xs text-gray-500 font-medium">
+                      {SKILL_CATEGORY_LABELS[category]}:
+                    </span>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {categorySkills.map((skill) => (
+                        <span
+                          key={skill}
+                          className="inline-flex items-center px-2 py-1 rounded text-xs bg-blue-100 text-blue-800"
+                        >
+                          {skill}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )
+              })}
+              {formData.skills.os.length === 0 &&
+               formData.skills.tools.length === 0 &&
+               formData.skills.languages.length === 0 && (
+                <span className="text-xs text-gray-500">スキル: 未選択</span>
+              )}
+            </div>
           </div>
         </div>
       </div>

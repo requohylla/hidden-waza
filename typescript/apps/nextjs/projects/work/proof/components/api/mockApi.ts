@@ -13,7 +13,11 @@ export interface Resume {
   title: string
   description: string
   date: string
-  skill: string
+  skills: {
+    os: string[]
+    tools: string[]
+    languages: string[]
+  }
   verified: boolean
   createdAt: string
   updatedAt: string
@@ -44,7 +48,11 @@ let mockResumes: Resume[] = [
     title: 'Reactを使用したECサイト開発',
     description: 'Next.js、TypeScript、Tailwind CSSを使用してモダンなECサイトを開発しました。決済機能、商品管理、ユーザー認証などの機能を実装し、レスポンシブデザインに対応しました。',
     date: '2024-03-15',
-    skill: 'React',
+    skills: {
+      os: ['Windows', 'Linux (Ubuntu)'],
+      tools: ['Visual Studio Code', 'Git', 'GitHub'],
+      languages: ['JavaScript', 'TypeScript', 'React', 'Next.js', 'Tailwind CSS']
+    },
     verified: true,
     createdAt: '2024-03-20T10:00:00Z',
     updatedAt: '2024-03-20T10:00:00Z'
@@ -55,7 +63,11 @@ let mockResumes: Resume[] = [
     title: 'Node.js API開発とデータベース設計',
     description: 'Express.jsとPostgreSQLを使用してRESTful APIを開発しました。JWT認証、バリデーション、エラーハンドリングを実装し、OpenAPIドキュメントも作成しました。',
     date: '2024-02-10',
-    skill: 'Node.js',
+    skills: {
+      os: ['Linux (CentOS)'],
+      tools: ['Visual Studio Code', 'Git', 'Docker', 'Postman'],
+      languages: ['JavaScript', 'Node.js', 'Express.js', 'PostgreSQL']
+    },
     verified: false,
     createdAt: '2024-02-15T10:00:00Z',
     updatedAt: '2024-02-15T10:00:00Z'

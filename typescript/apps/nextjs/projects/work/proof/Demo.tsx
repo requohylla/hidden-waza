@@ -274,7 +274,6 @@ export default function Demo() {
         
         {state.currentView === 'create' && (
           <ResumeFormScreen
-            skills={state.skills}
             onSave={handleCreateResume}
             onCancel={handleCancel}
             isLoading={state.isLoading}
@@ -284,7 +283,6 @@ export default function Demo() {
         {state.currentView === 'edit' && state.editingResume && (
           <ResumeFormScreen
             resume={state.editingResume}
-            skills={state.skills}
             onSave={handleUpdateResume}
             onCancel={handleCancel}
             isLoading={state.isLoading}

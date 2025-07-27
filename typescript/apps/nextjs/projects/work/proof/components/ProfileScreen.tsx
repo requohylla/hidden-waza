@@ -6,7 +6,11 @@ interface Resume {
   title: string
   description: string
   date: string
-  skill: string
+  skills: {
+    os: string[]
+    tools: string[]
+    languages: string[]
+  }
   verified: boolean
   createdAt: string
 }
@@ -92,7 +96,7 @@ export function ProfileScreen({
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">スキル種類</p>
               <p className="text-2xl font-bold text-gray-900">
-                {new Set(resumes.map(r => r.skill)).size}
+                {new Set(resumes.flatMap(r => [...r.skills.os, ...r.skills.tools, ...r.skills.languages])).size}
               </p>
             </div>
           </div>
@@ -135,10 +139,26 @@ export function ProfileScreen({
                         <CalendarIcon className="h-4 w-4 mr-1" />
                         {formatDate(resume.date)}
                       </span>
-                      <span className="flex items-center">
-                        <TagIcon className="h-4 w-4 mr-1" />
-                        {resume.skill}
-                      </span>
+                      <div className="flex items-start">
+                        <TagIcon className="h-4 w-4 mr-1 mt-0.5" />
+                        <div className="flex flex-wrap gap-1">
+                          {[...resume.skills.os, ...resume.skills.tools, ...resume.skills.languages]
+                            .slice(0, 3)
+                            .map((skill, index) => (
+                              <span
+                                key={index}
+                                className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-blue-100 text-blue-800"
+                              >
+                                {skill}
+                              </span>
+                            ))}
+                          {[...resume.skills.os, ...resume.skills.tools, ...resume.skills.languages].length > 3 && (
+                            <span className="text-xs text-gray-500">
+                              +{[...resume.skills.os, ...resume.skills.tools, ...resume.skills.languages].length - 3}
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     </div>
                   </div>
                   <div className="flex space-x-2 ml-4">
