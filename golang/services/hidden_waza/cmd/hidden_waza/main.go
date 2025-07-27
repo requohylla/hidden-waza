@@ -38,6 +38,13 @@ func main() {
 	userRepo := &repository.UserRepository{DB: db}
 	userHandler := &handler.UserHandler{Repo: userRepo}
 
+	osRepo := repository.NewOSRepository(db)
+	osHandler := handler.NewOSHandler(osRepo)
+	langRepo := repository.NewLanguageRepository(db)
+	langHandler := handler.NewLanguageHandler(langRepo)
+	toolRepo := repository.NewToolRepository(db)
+	toolHandler := handler.NewToolHandler(toolRepo)
+
 	e := echo.New()
 
 	e.Use(middleware.Logger())
@@ -47,14 +54,17 @@ func main() {
 	e.Pre(middleware.RemoveTrailingSlash())
 
 	e.GET("/", hello)
-	e.POST("/api/v1/resume/post", wrapHTTPHandler(h.CreateResume))
-	e.GET("/api/v1/resume/get", wrapHTTPHandler(h.GetResumes))
-	e.GET("/api/v1/resume/get/:id", h.GetResumeByID)
-	e.GET("/api/v1/resume/get/user/:user_id", h.GetResumesByUserID)
+	e.POST("/api/v1/resume", wrapHTTPHandler(h.CreateResume))
+	e.GET("/api/v1/resume", wrapHTTPHandler(h.GetResumes))
+	e.GET("/api/v1/resume/:id", h.GetResumeByID)
+	e.GET("/api/v1/resume/user/:user_id", h.GetResumesByUserID)
 
-	// ユーザー登録・ログインAPI
-	e.POST("/api/v1/user/register", userHandler.Register)
-	e.POST("/api/v1/user/login", userHandler.Login)
+	e.POST("/api/v1/signup", userHandler.Register)
+	e.POST("/api/v1/login", userHandler.Login)
+
+	e.GET("/api/v1/os", osHandler.GetOSList)
+	e.GET("/api/v1/languages", langHandler.GetLanguageList)
+	e.GET("/api/v1/tools", toolHandler.GetToolList)
 
 	e.Logger.Fatal(e.Start(":8080"))
 }

@@ -112,7 +112,7 @@ go run main.go
 #### resume登録
 
 ```sh
-curl -X POST http://localhost:8080/api/v1/resume/post \
+curl -X POST http://localhost:8080/api/v1/resume \
   -H "Content-Type: application/json" \
   -d '{
     "user_id": 1,
@@ -136,17 +136,16 @@ curl -X POST http://localhost:8080/api/v1/resume/post \
 
 #### ユーザー登録
 ``` sh
-curl -X POST http://localhost:8080/api/v1/user/register \
+curl -X POST http://localhost:8080/api/v1/signup \
   -H "Content-Type: application/json" \
-  -d '{"username":"testuser","email":"testuser@example.com","password":"password123"}
+  -d '{"username":"testuser","email":"testuser@example.com","password":"password123"}'
 ```
 
 #### ユーザー認証
 ``` sh
-curl -X POST http://localhost:8080/api/v1/user/login \
+curl -X POST http://localhost:8080/api/v1/login \
   -H "Content-Type: application/json" \
-  -d '{"email":"testuser@example.com","password":"password123"}'
-
+  -d '{"email":"testuser@example.com","password":"password123"}'d
 ```
 
 ### 5.3 レスポンス・エラー確認
