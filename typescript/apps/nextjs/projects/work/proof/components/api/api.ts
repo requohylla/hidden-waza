@@ -48,8 +48,9 @@ export const authApi = {
       user: {
         id: data.login.user.id,
         name: data.login.user.username,
+        username: data.login.user.username,
         email: data.login.user.email,
-        joinDate: ''
+        joinDate: new Date().toISOString()
       },
       token: data.login.token
     };

@@ -114,6 +114,7 @@ export default function Demo() {
       }))
     } catch (error) {
       setState(prev => ({ ...prev, isLoading: false }))
+      console.error('ログイン処理エラー:', error)
       throw error
     }
   }
