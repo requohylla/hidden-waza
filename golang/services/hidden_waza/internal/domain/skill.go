@@ -10,6 +10,13 @@ type Skill struct {
 	Years    int    `json:"years"`
 }
 
+func (s Skill) IsValid() bool {
+	if s.Type == "" || s.Level == "" || s.Years < 0 {
+		return false
+	}
+	return true
+}
+
 func (Skill) TableName() string {
 	return "skills"
 }

@@ -12,6 +12,13 @@ type Experience struct {
 	PortfolioURL string `json:"portfolio_url"`
 }
 
+func (e Experience) IsValid() bool {
+	if e.Company == "" || e.StartDate == "" {
+		return false
+	}
+	return true
+}
+
 func (Experience) TableName() string {
 	return "experiences"
 }

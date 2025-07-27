@@ -48,6 +48,38 @@ type Resume struct {
 	UpdatedAt   time.Time    `json:"updated_at"`
 }
 
+/// 職務経歴書の業務的バリデーション
+func (r *Resume) IsValid() bool {
+	if r.Title == "" || r.UserID == 0 {
+		return false
+	}
+	for _, s := range r.Skills {
+		if !s.IsValid() {
+			return false
+		}
+	}
+	for _, e := range r.Experiences {
+		if !e.IsValid() {
+			return false
+		}
+	}
+	return true
+}
+
+func (r *Resume) AddSkill(skill Skill) {
+	r.Skills = append(r.Skills, skill)
+}
+
+func (r *Resume) RemoveSkill(skillID uint) {
+	newSkills := make([]Skill, 0, len(r.Skills))
+	for _, s := range r.Skills {
+		if s.ID != skillID {
+			newSkills = append(newSkills, s)
+		}
+	}
+	r.Skills = newSkills
+}
+
 func (Resume) TableName() string {
 	return "resumes"
 }

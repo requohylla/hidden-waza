@@ -16,7 +16,7 @@ func GenerateUsers(n int) []domain.User {
 	for i := 0; i < n; i++ {
 		users[i] = domain.User{
 			Username:     fmt.Sprintf("dummy_user_%03d", i+1),
-			Email:        fmt.Sprintf("user%03d@example.com", i+1),
+			Email:        domain.Email(fmt.Sprintf("user%03d%d@example.com", i+1, time.Now().UnixNano())),
 			PasswordHash: "dummyhash",
 			CreatedAt:    now,
 			UpdatedAt:    now,
