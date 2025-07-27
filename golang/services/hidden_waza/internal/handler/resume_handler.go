@@ -1,4 +1,15 @@
-// 職務経歴書APIハンドラ
+/*
+resume_handler.go
+
+このファイルは職務経歴書（Resume）に関するAPIリクエストを処理するハンドラを定義します。
+主な役割は以下の通りです：
+- API層（JSONリクエスト/レスポンス）とドメイン層（internal/domain/）の橋渡し
+- DTO（[`ResumeDTO`](services/hidden_waza/api/v1/dto/resume_dto.go)）とドメインモデル（[`Resume`](services/hidden_waza/internal/domain/resume.go)）の相互変換
+- DB操作は [`ResumeRepository`](services/hidden_waza/internal/repository/resume_repository.go) を通じて行う
+- 変換関数（convertSkillDTOs, convertExperienceDTOs等）でDTOとドメインモデルの差異を吸収し、API仕様と内部構造の独立性を保つ
+
+この設計により、API仕様変更や内部DB構造変更の影響を最小限に抑え、保守性・拡張性を高めています。
+*/
 package handler
 
 import (
@@ -26,6 +37,7 @@ func (h *ResumeHandler) CreateResume(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid request", http.StatusBadRequest)
 		return
 	}
+	// DTO（ResumeDTO）からドメインモデル（Resume）へ変換
 	resume := domain.Resume{
 		UserID:      req.UserID,
 		Title:       req.Title,
@@ -41,6 +53,7 @@ func (h *ResumeHandler) CreateResume(w http.ResponseWriter, r *http.Request) {
 }
 
 // SkillDTOからdomain.Skillへの変換
+// DTOとドメインモデルの構造やフィールド名が異なる場合もここで吸収可能
 func convertSkillDTOs(dtos []dto.SkillDTO) []domain.Skill {
 	var skills []domain.Skill
 	for _, s := range dtos {
@@ -55,6 +68,7 @@ func convertSkillDTOs(dtos []dto.SkillDTO) []domain.Skill {
 }
 
 // ExperienceDTOからdomain.Experienceへの変換
+// DTOとドメインモデルの構造やフィールド名が異なる場合もここで吸収可能
 func convertExperienceDTOs(dtos []dto.ExperienceDTO) []domain.Experience {
 	var exps []domain.Experience
 	for _, e := range dtos {
