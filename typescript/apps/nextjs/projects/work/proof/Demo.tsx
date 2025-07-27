@@ -39,24 +39,35 @@ export default function Demo() {
     isInitializing: !!initialSession // セッションがある場合のみ初期化フラグ
   })
 
-  // 初期化：セッションがある場合のみデータ読み込み
+  // 初期化：セッション、ビュー状態、スキル読み込み
   useEffect(() => {
     const initializeApp = async () => {
       try {
         // スキル一覧取得
         const skills = getSkills()
         
-        if (state.user && state.currentView === 'profile') {
-          // セッションがある場合、経歴書一覧を取得
+        // 保存されたビューを復元
+        const savedView = SessionManager.getCurrentView()
+        let targetView = state.currentView
+        
+        if (state.user) {
+          // ログイン済みの場合
           const resumes = await resumeApi.getResumes()
+          
+          // 保存されたビューがあれば復元
+          if (savedView && (savedView === 'profile' || savedView === 'create' || savedView === 'edit')) {
+            targetView = savedView as any
+          }
+          
           setState(prev => ({
             ...prev,
+            currentView: targetView,
             resumes,
             skills,
             isInitializing: false
           }))
         } else {
-          // セッションがない場合はスキルのみ設定
+          // 未ログインの場合はスキルのみ設定
           setState(prev => ({
             ...prev,
             skills,
@@ -75,6 +86,13 @@ export default function Demo() {
     
     initializeApp()
   }, [])
+
+  // ビュー変更時に保存
+  useEffect(() => {
+    if (state.user && !state.isInitializing) {
+      SessionManager.saveCurrentView(state.currentView)
+    }
+  }, [state.currentView, state.user, state.isInitializing])
 
   // ログイン処理
   const handleLogin = async (credentials: { email: string; password: string }) => {

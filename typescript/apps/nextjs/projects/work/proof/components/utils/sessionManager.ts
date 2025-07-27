@@ -106,4 +106,55 @@ export class SessionManager {
     const session = this.getSession()
     return session?.token || null
   }
+
+  // フォームデータ保存
+  static saveFormData(formData: any, formType: 'create' | 'edit'): void {
+    try {
+      const key = `resume_form_${formType}`
+      sessionStorage.setItem(key, JSON.stringify(formData))
+    } catch (error) {
+      console.warn('フォームデータ保存に失敗:', error)
+    }
+  }
+
+  // フォームデータ取得
+  static getFormData(formType: 'create' | 'edit'): any | null {
+    try {
+      const key = `resume_form_${formType}`
+      const data = sessionStorage.getItem(key)
+      return data ? JSON.parse(data) : null
+    } catch (error) {
+      console.warn('フォームデータ取得に失敗:', error)
+      return null
+    }
+  }
+
+  // フォームデータクリア
+  static clearFormData(formType: 'create' | 'edit'): void {
+    try {
+      const key = `resume_form_${formType}`
+      sessionStorage.removeItem(key)
+    } catch (error) {
+      console.warn('フォームデータクリアに失敗:', error)
+    }
+  }
+
+  // 現在のビューを保存
+  static saveCurrentView(view: string): void {
+    try {
+      sessionStorage.setItem('resume_current_view', view)
+    } catch (error) {
+      console.warn('ビュー保存に失敗:', error)
+    }
+  }
+
+  // 現在のビューを取得
+  static getCurrentView(): string | null {
+    try {
+      return sessionStorage.getItem('resume_current_view')
+    } catch (error) {
+      console.warn('ビュー取得に失敗:', error)
+      return null
+    }
+  }
 }

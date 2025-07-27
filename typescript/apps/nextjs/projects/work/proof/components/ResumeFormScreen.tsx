@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react'
 import { ArrowLeftIcon } from '@heroicons/react/24/outline'
 import { Button } from './ui/Button'
 import { InputField, TextareaField, SelectField } from './ui/FormField'
+import { SessionManager } from './utils/sessionManager'
 
 interface Resume {
   id?: number
@@ -27,24 +28,55 @@ export function ResumeFormScreen({
   onCancel, 
   isLoading = false 
 }: ResumeFormScreenProps) {
-  const [formData, setFormData] = useState({
-    title: '',
-    description: '',
-    date: '',
-    skill: ''
-  })
+  const formType = resume ? 'edit' : 'create'
+  
+  type FormData = {
+    title: string
+    description: string
+    date: string
+    skill: string
+  }
+  
+  // 保存されたフォームデータを復元
+  const getSavedFormData = (): FormData => {
+    const saved = SessionManager.getFormData(formType)
+    if (saved) {
+      return saved
+    }
+    
+    // 保存データがない場合は初期値
+    return {
+      title: resume?.title || '',
+      description: resume?.description || '',
+      date: resume?.date || '',
+      skill: resume?.skill || ''
+    }
+  }
+
+  const [formData, setFormData] = useState<FormData>(getSavedFormData)
   const [errors, setErrors] = useState<{ [key: string]: string }>({})
 
+  // 編集時は既存データをセット（ただし保存データがあれば優先）
   useEffect(() => {
     if (resume) {
-      setFormData({
-        title: resume.title,
-        description: resume.description,
-        date: resume.date,
-        skill: resume.skill
-      })
+      const saved = SessionManager.getFormData('edit')
+      if (!saved) {
+        setFormData({
+          title: resume.title,
+          description: resume.description,
+          date: resume.date,
+          skill: resume.skill
+        })
+      }
     }
   }, [resume])
+
+  // フォームデータ変更時に自動保存
+  useEffect(() => {
+    if (formData.title || formData.description || formData.date || formData.skill) {
+      SessionManager.saveFormData(formData, formType)
+    }
+  }, [formData, formType])
 
   const validate = () => {
     const newErrors: { [key: string]: string } = {}
@@ -80,17 +112,25 @@ export function ResumeFormScreen({
 
     try {
       await onSave(formData)
+      // 保存成功時にフォームデータをクリア
+      SessionManager.clearFormData(formType)
     } catch (error) {
       setErrors({ general: '保存に失敗しました。もう一度お試しください。' })
     }
   }
 
-  const handleInputChange = (field: keyof typeof formData) => (
+  const handleCancel = () => {
+    // キャンセル時にフォームデータをクリア
+    SessionManager.clearFormData(formType)
+    onCancel()
+  }
+
+  const handleInputChange = (field: keyof FormData) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>
   ) => {
-    setFormData(prev => ({ ...prev, [field]: e.target.value }))
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }))
+    setFormData((prev: FormData) => ({ ...prev, [field]: e.target.value }))
+    if (errors[field as string]) {
+      setErrors((prev: { [key: string]: string }) => ({ ...prev, [field as string]: '' }))
     }
   }
 
@@ -171,7 +211,7 @@ export function ResumeFormScreen({
             <Button
               type="button"
               variant="outline"
-              onClick={onCancel}
+              onClick={handleCancel}
               disabled={isLoading}
             >
               キャンセル
