@@ -12,7 +12,7 @@ export class LoginInput {
 @ObjectType()
 export class UserType {
   @Field()
-  id: string;
+  id: number;
 
   @Field()
   username: string;

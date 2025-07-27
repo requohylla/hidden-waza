@@ -13,9 +13,10 @@ import { ConfigModule } from '@nestjs/config';
       autoSchemaFile: join(process.cwd(), 'src/schema.gql'),
     }),
   ],
-  providers: [HelloResolver,
-    // AuthResolverを追加
-    require('./auth.resolver').AuthResolver
+  providers: [
+    HelloResolver,
+    require('./auth.resolver').AuthResolver,
+    require('./resume.resolver').ResumeResolver
   ],
 })
 export class AppModule {}

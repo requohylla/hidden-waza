@@ -9,7 +9,7 @@ type RegisterResponse {
 }
 
 type UserType {
-  id: String!
+  id: Float!
   username: String!
   email: String!
 }
@@ -19,13 +19,33 @@ type LoginResponse {
   token: String!
 }
 
+type Skills {
+  os: [String!]!
+  tools: [String!]!
+  languages: [String!]!
+}
+
+type Resume {
+  id: Int!
+  userId: Int!
+  title: String!
+  description: String!
+  date: String!
+  skills: Skills!
+  verified: Boolean!
+  createdAt: String!
+  updatedAt: String!
+}
+
 type Query {
   hello: String!
+  resumes: [Resume!]!
 }
 
 type Mutation {
   login(input: LoginInput!): LoginResponse!
   register(input: RegisterInput!): RegisterResponse!
+  createResume(input: ResumeInput!): Resume!
 }
 
 input LoginInput {
@@ -37,4 +57,17 @@ input RegisterInput {
   username: String!
   email: String!
   password: String!
+}
+
+input ResumeInput {
+  title: String!
+  description: String!
+  date: String!
+  skills: SkillsInput!
+}
+
+input SkillsInput {
+  os: [String!]!
+  tools: [String!]!
+  languages: [String!]!
 }
