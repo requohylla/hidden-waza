@@ -52,7 +52,7 @@ export default function Demo() {
         
         if (state.user) {
           // ログイン済みの場合
-          const resumes = await resumeApi.getResumes()
+          const resumes = await resumeApi.getResumes(state.user?.id)
           
           // 保存されたビューがあれば復元
           if (savedView && (savedView === 'profile' || savedView === 'create' || savedView === 'edit')) {
