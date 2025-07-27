@@ -238,11 +238,12 @@ export default function ResponsiveProjectPage({ markdown, Demo }: Props) {
         />
         {/* 右側：説明欄（タブUI） */}
         <div
-          className="bg-white border-l border-gray-200 overflow-auto"
+          className="bg-white border-l border-gray-200 overflow-hidden flex flex-col"
           style={{
             width: `${100 - splitRatio}%`,
             minWidth: '200px',
-            flexShrink: 0
+            flexShrink: 0,
+            maxHeight: '100%'
           }}
         >
           <TabSection markdown={markdown} />
@@ -298,7 +299,7 @@ function TabSection({ markdown, isMobile = false }: { markdown: string; isMobile
   }
 
   return (
-    <div className="h-full flex flex-col">
+    <div className="h-full flex flex-col max-h-full">
       {/* ブラウザタブ風のタブバー */}
       <div className="relative bg-gray-200 border-b border-gray-300">
         <div className="flex overflow-x-auto scrollbar-hide">
@@ -349,13 +350,66 @@ function TabSection({ markdown, isMobile = false }: { markdown: string; isMobile
           .scrollbar-hide::-webkit-scrollbar {
             display: none;
           }
+          
+          /* 説明欄のカスタムスクロールバー */
+          .custom-scrollbar {
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 #f8fafc;
+          }
+          
+          .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+          }
+          
+          .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f8fafc;
+            border-radius: 4px;
+          }
+          
+          .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 4px;
+            border: 1px solid #f8fafc;
+          }
+          
+          .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+          }
+          
+          /* スクロール時のフェードエフェクト */
+          .custom-scrollbar {
+            position: relative;
+          }
+          
+          .custom-scrollbar::before {
+            content: '';
+            position: sticky;
+            top: 0;
+            height: 8px;
+            background: linear-gradient(to bottom, rgba(255,255,255,0.9), transparent);
+            z-index: 1;
+            pointer-events: none;
+          }
+          
+          .custom-scrollbar::after {
+            content: '';
+            position: sticky;
+            bottom: 0;
+            height: 8px;
+            background: linear-gradient(to top, rgba(255,255,255,0.9), transparent);
+            z-index: 1;
+            pointer-events: none;
+            margin-top: -8px;
+          }
         `}</style>
       </div>
       
       {/* コンテンツエリア */}
-      <div className={`flex-1 prose prose-sm max-w-none bg-white overflow-auto ${
+      <div className={`flex-1 prose prose-sm max-w-none bg-white overflow-y-auto overflow-x-hidden ${
         isMobile ? 'p-4' : 'p-6'
-      }`}>
+      } custom-scrollbar`} style={{
+        maxHeight: isMobile ? 'calc(100vh - 8rem)' : 'calc(100vh - 8rem)'
+      }}>
         <ReactMarkdown
           rehypePlugins={[rehypeHighlight]}
           components={{
