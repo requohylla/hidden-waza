@@ -9,7 +9,7 @@ import { LoginScreen } from './components/LoginScreen'
 import { ProfileScreen } from './components/ProfileScreen'
 import { ResumeFormScreen } from './components/ResumeFormScreen'
 import { Navigation } from './components/ui/Navigation'
-import { authApi, resumeApi, skillApi, User, Resume } from './components/api/mockApi'
+import { authApi, resumeApi, skillApi, User, Resume } from './components/api/api'
 import { getSkills } from './components/data/skills'
 import { SessionManager } from './components/utils/sessionManager'
 
