@@ -2,9 +2,8 @@ package main
 
 import (
 	"fmt"
-	"net/http"
-
 	"log"
+	"net/http"
 
 	_ "github.com/go-sql-driver/mysql"
 	"github.com/labstack/echo/v4"
@@ -36,19 +35,27 @@ func main() {
 	repo := repository.NewResumeRepository(db)
 	h := handler.NewResumeHandler(repo)
 
+	userRepo := &repository.UserRepository{DB: db}
+	userHandler := &handler.UserHandler{Repo: userRepo}
+
 	e := echo.New()
 
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
-	// URL末尾にあるスラッシュを省く
+	// URLの末尾のスラッシュを削除するミドルウェア
+	// これにより、`/api/v1/resume/post/` のようなリクエストも `/api/v1/resume/post` として処理される
 	e.Pre(middleware.RemoveTrailingSlash())
 
 	e.GET("/", hello)
 	e.POST("/api/v1/resume/post", wrapHTTPHandler(h.CreateResume))
 	e.GET("/api/v1/resume/get", wrapHTTPHandler(h.GetResumes))
 	e.GET("/api/v1/resume/get/:id", h.GetResumeByID)
-
 	e.GET("/api/v1/resume/get/user/:user_id", h.GetResumesByUserID)
+
+	// ユーザー登録・ログインAPI
+	e.POST("/api/v1/user/register", userHandler.Register)
+	e.POST("/api/v1/user/login", userHandler.Login)
+
 	e.Logger.Fatal(e.Start(":8080"))
 }
 

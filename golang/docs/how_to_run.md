@@ -107,7 +107,9 @@ go run main.go
 - GET `/resumes/:id` … 詳細取得
 - GET `/resumes/user/:user_id` … ユーザー別一覧
 
-### 5.2 curlによるテスト例（POST）
+### 5.2 curlによるテスト例
+
+#### resume登録
 
 ```sh
 curl -X POST http://localhost:8080/api/v1/resume/post \
@@ -130,6 +132,21 @@ curl -X POST http://localhost:8080/api/v1/resume/post \
       }
     ]
   }'
+```
+
+#### ユーザー登録
+``` sh
+curl -X POST http://localhost:8080/api/v1/user/register \
+  -H "Content-Type: application/json" \
+  -d '{"username":"testuser","email":"testuser@example.com","password":"password123"}
+```
+
+#### ユーザー認証
+``` sh
+curl -X POST http://localhost:8080/api/v1/user/login \
+  -H "Content-Type: application/json" \
+  -d '{"email":"testuser@example.com","password":"password123"}'
+
 ```
 
 ### 5.3 レスポンス・エラー確認
