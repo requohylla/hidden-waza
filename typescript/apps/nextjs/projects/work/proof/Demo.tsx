@@ -1,5 +1,6 @@
 // 職務経歴書デモ（本格版）
 // ログイン → プロフィール → 経歴書作成・編集の完全なフロー
+// セッション管理機能付き
 
 'use client'
 
@@ -10,6 +11,7 @@ import { ResumeFormScreen } from './components/ResumeFormScreen'
 import { Navigation } from './components/ui/Navigation'
 import { authApi, resumeApi, skillApi, User, Resume } from './components/api/mockApi'
 import { getSkills } from './components/data/skills'
+import { SessionManager } from './components/utils/sessionManager'
 
 type View = 'login' | 'profile' | 'create' | 'edit'
 
@@ -20,29 +22,58 @@ interface AppState {
   skills: string[]
   editingResume: Resume | null
   isLoading: boolean
+  isInitializing: boolean
 }
 
 export default function Demo() {
+  // 初期状態でセッションチェック
+  const initialSession = typeof window !== 'undefined' ? SessionManager.getSession() : null
+  
   const [state, setState] = useState<AppState>({
-    currentView: 'login',
-    user: null,
+    currentView: initialSession ? 'profile' : 'login',
+    user: initialSession?.user || null,
     resumes: [],
     skills: [],
     editingResume: null,
-    isLoading: false
+    isLoading: false,
+    isInitializing: !!initialSession // セッションがある場合のみ初期化フラグ
   })
 
-  // 初期化：スキル一覧を取得
+  // 初期化：セッションがある場合のみデータ読み込み
   useEffect(() => {
-    const loadSkills = async () => {
+    const initializeApp = async () => {
       try {
+        // スキル一覧取得
         const skills = getSkills()
-        setState(prev => ({ ...prev, skills }))
+        
+        if (state.user && state.currentView === 'profile') {
+          // セッションがある場合、経歴書一覧を取得
+          const resumes = await resumeApi.getResumes()
+          setState(prev => ({
+            ...prev,
+            resumes,
+            skills,
+            isInitializing: false
+          }))
+        } else {
+          // セッションがない場合はスキルのみ設定
+          setState(prev => ({
+            ...prev,
+            skills,
+            isInitializing: false
+          }))
+        }
       } catch (error) {
-        console.error('スキル読み込みエラー:', error)
+        console.error('初期化エラー:', error)
+        setState(prev => ({
+          ...prev,
+          skills: getSkills(),
+          isInitializing: false
+        }))
       }
     }
-    loadSkills()
+    
+    initializeApp()
   }, [])
 
   // ログイン処理
@@ -50,8 +81,11 @@ export default function Demo() {
     setState(prev => ({ ...prev, isLoading: true }))
     
     try {
-      const { user } = await authApi.login(credentials)
+      const { user, token } = await authApi.login(credentials)
       const resumes = await resumeApi.getResumes()
+      
+      // セッションを保存
+      SessionManager.saveSession(user, token)
       
       setState(prev => ({
         ...prev,
@@ -69,15 +103,22 @@ export default function Demo() {
   // ナビゲーション処理
   const handleNavigate = (view: 'profile' | 'create' | 'logout') => {
     if (view === 'logout') {
+      // セッションをクリア
+      SessionManager.clearSession()
+      
       setState({
         currentView: 'login',
         user: null,
         resumes: [],
         skills: state.skills,
         editingResume: null,
-        isLoading: false
+        isLoading: false,
+        isInitializing: false
       })
     } else {
+      // セッション延長
+      SessionManager.extendSession()
+      
       setState(prev => ({
         ...prev,
         currentView: view,
@@ -171,6 +212,18 @@ export default function Demo() {
     }))
   }
 
+  // セッションがある場合の初期化中はローディング画面
+  if (state.isInitializing && state.user) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
+          <p className="text-gray-600">データを読み込んでいます...</p>
+        </div>
+      </div>
+    )
+  }
+
   // ログイン画面
   if (state.currentView === 'login') {
     return (
@@ -219,14 +272,7 @@ export default function Demo() {
             isLoading={state.isLoading}
           />
         )}
-      </main>
-      
-      {/* API情報表示 */}
-      <div className="fixed bottom-4 right-4 bg-blue-50 border border-blue-200 rounded-lg p-3 text-xs text-blue-700 max-w-xs">
-        <p className="font-semibold mb-1">🔧 開発メモ</p>
-        <p>API: モック実装（別プロジェクトで実装予定）</p>
-        <p>ログイン: tanaka@example.com / password</p>
-      </div>
+      </main>      
     </div>
   )
 }
