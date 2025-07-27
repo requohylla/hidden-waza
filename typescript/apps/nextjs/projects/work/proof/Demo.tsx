@@ -100,7 +100,7 @@ export default function Demo() {
     
     try {
       const { user, token } = await authApi.login(credentials)
-      const resumes = await resumeApi.getResumes()
+      const resumes = await resumeApi.getResumes(user.id)
       
       // セッションを保存
       SessionManager.saveSession(user, token)

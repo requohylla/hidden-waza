@@ -76,10 +76,10 @@ export const authApi = {
 };
 
 export const resumeApi = {
-  async getResumes() {
+  async getResumes(userId?: number) {
     const query = gql`
-      query {
-        resumes {
+      query GetResumes($userId: Int) {
+        resumes(userId: $userId) {
           id
           userId
           title
@@ -92,7 +92,8 @@ export const resumeApi = {
         }
       }
     `;
-    const data = await client.request<{ resumes: Resume[] }>(query);
+    const variables = userId !== undefined ? { userId } : {};
+    const data = await client.request<{ resumes: Resume[] }>(query, variables);
     return data.resumes;
   },
   async createResume(resumeData: Omit<Resume, 'id' | 'userId' | 'verified' | 'createdAt' | 'updatedAt'>) {

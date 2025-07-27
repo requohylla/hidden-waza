@@ -39,7 +39,7 @@ type Resume {
 
 type Query {
   hello: String!
-  resumes: [Resume!]!
+  resumes(userId: Int): [Resume!]!
 }
 
 type Mutation {

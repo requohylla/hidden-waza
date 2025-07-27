@@ -44,8 +44,12 @@ export class BackendApiService {
     return res.data;
   }
 
-  async getResumes() {
-    const res = await axios.get(`${BASE_URL}/resume`);
+  async getResumes(userId?: number) {
+    let url = `${BASE_URL}/resume`;
+    if (userId !== undefined) {
+      url = `${BASE_URL}/resume/user/${userId}`;
+    }
+    const res = await axios.get(url);
     // Go APIのレスポンスをGraphQLのResume型に変換
     return res.data.map((item: any) => ({
       id: item.id,
