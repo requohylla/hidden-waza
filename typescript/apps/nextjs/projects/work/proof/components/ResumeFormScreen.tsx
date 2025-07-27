@@ -66,6 +66,7 @@ export function ResumeFormScreen({
 
   const [formData, setFormData] = useState<FormData>(getSavedFormData)
   const [errors, setErrors] = useState<{ [key: string]: string }>({})
+  const [activeTab, setActiveTab] = useState<SkillCategory>('os')
 
   // 編集時は既存データをセット（ただし保存データがあれば優先）
   useEffect(() => {
@@ -221,22 +222,71 @@ export function ResumeFormScreen({
               </p>
             </div>
             
-            {getAllCategories().map((category) => (
-              <div key={category} className="bg-gray-50 rounded-lg p-4">
-                <MultiSelectField
-                  label={SKILL_CATEGORY_LABELS[category]}
-                  values={formData.skills[category]}
-                  options={getSkillsByCategory(category)}
-                  onChange={handleSkillsChange(category)}
-                  placeholder={`${SKILL_CATEGORY_LABELS[category]}を選択してください`}
-                />
-                {formData.skills[category].length > 0 && (
-                  <div className="mt-2 text-xs text-gray-500">
-                    {formData.skills[category].length}個のスキルが選択されています
-                  </div>
-                )}
+            {/* タブナビゲーション */}
+            <div className="border-b border-gray-200">
+              <div className="overflow-x-auto">
+                <nav className="-mb-px flex space-x-6 min-w-max" aria-label="Tabs">
+                  {getAllCategories().map((category) => {
+                    const isActive = activeTab === category
+                    const selectedCount = formData.skills[category].length
+                    
+                    return (
+                      <button
+                        key={category}
+                        type="button"
+                        onClick={() => setActiveTab(category)}
+                        className={`whitespace-nowrap py-2 px-3 border-b-2 font-medium text-sm flex items-center gap-2 transition-colors min-w-fit ${
+                          isActive
+                            ? 'border-blue-500 text-blue-600'
+                            : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
+                        }`}
+                      >
+                        {SKILL_CATEGORY_LABELS[category]}
+                        {selectedCount > 0 && (
+                          <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-xs font-medium ${
+                            isActive
+                              ? 'bg-blue-100 text-blue-800'
+                              : 'bg-gray-100 text-gray-800'
+                          }`}>
+                            {selectedCount}
+                          </span>
+                        )}
+                      </button>
+                    )
+                  })}
+                </nav>
               </div>
-            ))}
+            </div>
+            
+            {/* タブコンテンツ */}
+            <div className="bg-gray-50 rounded-lg p-6 min-h-[300px]">
+              <MultiSelectField
+                label={`${SKILL_CATEGORY_LABELS[activeTab]}を選択`}
+                values={formData.skills[activeTab]}
+                options={getSkillsByCategory(activeTab)}
+                onChange={handleSkillsChange(activeTab)}
+                placeholder={`${SKILL_CATEGORY_LABELS[activeTab]}を検索・選択してください`}
+              />
+              
+              {/* 選択済みスキルの概要 */}
+              {formData.skills[activeTab].length > 0 && (
+                <div className="mt-4 p-4 bg-white rounded-lg border">
+                  <div className="text-sm font-medium text-gray-900 mb-2">
+                    選択済み ({formData.skills[activeTab].length}個)
+                  </div>
+                  <div className="flex flex-wrap gap-1">
+                    {formData.skills[activeTab].map((skill) => (
+                      <span
+                        key={skill}
+                        className="inline-flex items-center px-2 py-1 rounded text-xs bg-blue-100 text-blue-800"
+                      >
+                        {skill}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
             
             {errors.skills && (
               <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
