@@ -59,12 +59,8 @@ return res.data.map((item: any) => ({
   description: item.summary ?? item.description ?? '', // summary優先、なければdescription
   date: item.date ?? item.created_at ?? '', // date優先、なければcreated_at
   skills: Array.isArray(item.skills)
-    ? {
-        os: item.skills.filter((s: any) => s.type === 'os').map((s: any) => findMasterName(s.master_id, globalOsList)),
-        tools: item.skills.filter((s: any) => s.type === 'tool').map((s: any) => findMasterName(s.master_id, globalToolsList)),
-        languages: item.skills.filter((s: any) => s.type === 'language').map((s: any) => findMasterName(s.master_id, globalLanguagesList)),
-      }
-    : { os: [], tools: [], languages: [] },
+    ? item.skills // SkillDTO[]をそのまま渡す
+    : [],
   verified: !!item.verified,
   createdAt: item.created_at ?? '',
   updatedAt: item.updated_at ?? '',

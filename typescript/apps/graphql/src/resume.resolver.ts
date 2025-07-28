@@ -42,11 +42,24 @@ export class ResumeResolver {
       if (resume.skills) {
         // Go APIのSkillDTO[]配列
         if (Array.isArray(resume.skills)) {
-          items = resume.skills.map((s: any) => ({
-            type: s.type,
-            master_id: s.master_id,
-            name: masterName(s.type, s.master_id)
-          }));
+          items = resume.skills.map((s: any) => {
+            let name = '';
+            if (s.type === 'os') {
+              const found = osList.find((m: any) => m.id === s.master_id);
+              name = found ? found.name : '';
+            } else if (s.type === 'tool' || s.type === 'tools') {
+              const found = toolsList.find((m: any) => m.id === s.master_id);
+              name = found ? found.name : '';
+            } else if (s.type === 'language' || s.type === 'languages') {
+              const found = languagesList.find((m: any) => m.id === s.master_id);
+              name = found ? found.name : '';
+            }
+            return {
+              type: s.type,
+              master_id: s.master_id,
+              name: name
+            };
+          });
         } else if (Array.isArray(resume.skills.items)) {
           items = resume.skills.items;
         } else {
