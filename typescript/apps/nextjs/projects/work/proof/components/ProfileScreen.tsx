@@ -1,6 +1,6 @@
-import { PlusIcon, DocumentTextIcon, CalendarIcon, TagIcon } from '@heroicons/react/24/outline'
+import { PlusIcon, DocumentTextIcon, CalendarIcon, TagIcon, ChevronLeftIcon, ChevronRightIcon } from '@heroicons/react/24/outline'
 import { Button } from './ui/Button'
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 interface Resume {
   id: number
@@ -42,6 +42,51 @@ export function ProfileScreen({
 }: ProfileScreenProps) {
   const [filterTitle, setFilterTitle] = useState<string>('');
   const [filterVerified, setFilterVerified] = useState<string>('');
+  // Statistics carousel state
+  const stats = [
+    {
+      icon: <DocumentTextIcon className="h-8 w-8 text-blue-600 flex-shrink-0" />,
+      label: '総経歴書数',
+      value: resumes.length,
+    },
+    {
+      icon: <CalendarIcon className="h-8 w-8 text-green-600 flex-shrink-0" />,
+      label: '認証済み',
+      value: resumes.filter(r => r.verified).length,
+    },
+    {
+      icon: <TagIcon className="h-8 w-8 text-purple-600 flex-shrink-0" />,
+      label: 'スキル種類',
+      value: new Set(resumes.flatMap(r => r.skills.items.map(item => item.name))).size,
+    },
+  ];
+  const [statIndex, setStatIndex] = useState(0);
+  const statTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const lastManualTimeRef = useRef<number>(0);
+  const AUTO_SLIDE_DELAY = 2000; // ms
+
+  useEffect(() => {
+    statTimerRef.current && clearInterval(statTimerRef.current);
+    const tick = () => {
+      const now = Date.now();
+      if (now - lastManualTimeRef.current < AUTO_SLIDE_DELAY) return;
+      setStatIndex(idx => (idx + 1) % stats.length);
+    };
+    statTimerRef.current = setInterval(tick, 1000);
+    return () => {
+      statTimerRef.current && clearInterval(statTimerRef.current);
+    };
+  }, [stats.length]);
+
+  const handlePrevStat = () => {
+    setStatIndex(idx => (idx - 1 + stats.length) % stats.length);
+    lastManualTimeRef.current = Date.now();
+  };
+  const handleNextStat = () => {
+    setStatIndex(idx => (idx + 1) % stats.length);
+    lastManualTimeRef.current = Date.now();
+  };
+
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString('ja-JP')
   }
@@ -74,40 +119,43 @@ export function ProfileScreen({
       </div>
 
       {/* Statistics */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <div className="flex items-center">
-            <DocumentTextIcon className="h-8 w-8 text-blue-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">総経歴書数</p>
-              <p className="text-2xl font-bold text-gray-900">{resumes.length}</p>
+      <div className="relative mb-8 w-full max-w-md mx-auto">
+        <div className="overflow-hidden rounded-lg shadow-sm border bg-white">
+          <div className="flex items-center justify-center h-32">
+            <button
+              type="button"
+              aria-label="前へ"
+              className="absolute left-2 top-1/2 -translate-y-1/2 bg-white rounded-full shadow p-1 border border-gray-200 hover:bg-gray-100"
+              onClick={handlePrevStat}
+              style={{ zIndex: 2 }}
+            >
+              <ChevronLeftIcon className="h-5 w-5 text-gray-500" />
+            </button>
+            <div className="flex flex-col items-center justify-center w-full px-8">
+              {stats[statIndex].icon}
+              <p className="text-sm font-medium text-gray-600 mt-2">{stats[statIndex].label}</p>
+              <p className="text-2xl font-bold text-gray-900 mt-1">{stats[statIndex].value}</p>
             </div>
+            <button
+              type="button"
+              aria-label="次へ"
+              className="absolute right-2 top-1/2 -translate-y-1/2 bg-white rounded-full shadow p-1 border border-gray-200 hover:bg-gray-100"
+              onClick={handleNextStat}
+              style={{ zIndex: 2 }}
+            >
+              <ChevronRightIcon className="h-5 w-5 text-gray-500" />
+            </button>
           </div>
         </div>
-        
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <div className="flex items-center">
-            <CalendarIcon className="h-8 w-8 text-green-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">認証済み</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {resumes.filter(r => r.verified).length}
-              </p>
-            </div>
-          </div>
+        <div className="flex justify-center mt-2 gap-2">
+          {stats.map((_, idx) => (
+            <span
+              key={idx}
+              className={`inline-block w-2 h-2 rounded-full ${statIndex === idx ? 'bg-blue-500' : 'bg-gray-300'}`}
+            />
+          ))}
         </div>
-        
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <div className="flex items-center">
-            <TagIcon className="h-8 w-8 text-purple-600" />
-            <div className="ml-4">
-              <p className="text-sm font-medium text-gray-600">スキル種類</p>
-              <p className="text-2xl font-bold text-gray-900">
-                {new Set(resumes.flatMap(r => r.skills.items.map(item => item.name))).size}
-              </p>
-            </div>
-          </div>
-        </div>
+        <div className="text-xs text-gray-400 text-center mt-1">スワイプ・矢印で切替／自動スライド</div>
       </div>
 
       {/* Resume List */}
