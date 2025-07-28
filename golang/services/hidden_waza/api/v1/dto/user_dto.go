@@ -23,4 +23,5 @@ type UserLoginResponse struct {
 	ID       uint         `json:"id"`
 	Username string       `json:"username"`
 	Email    domain.Email `json:"email"`
+	Token    string       `json:"token"`
 }

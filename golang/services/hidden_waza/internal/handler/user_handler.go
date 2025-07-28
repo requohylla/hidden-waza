@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"time"
 
+	"github.com/golang-jwt/jwt/v4"
 	"github.com/labstack/echo/v4"
 	"github.com/requohylla/hidden-waza/services/hidden_waza/api/v1/dto"
 	"github.com/requohylla/hidden-waza/services/hidden_waza/internal/domain"
@@ -60,10 +61,25 @@ func (h *UserHandler) Login(c echo.Context) error {
 	if !user.PasswordHash.Verify(req.Password) {
 		return c.JSON(http.StatusUnauthorized, map[string]string{"error": "invalid password"})
 	}
+
+	// JWT生成
+	secret := []byte("your-secret-key") // TODO: .env等で管理
+	claims := jwt.MapClaims{
+		"user_id": user.ID,
+		"email":   string(user.Email),
+		"exp":     time.Now().Add(24 * time.Hour).Unix(),
+	}
+	tokenObj := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+	tokenStr, err := tokenObj.SignedString(secret)
+	if err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "token generation failed"})
+	}
+
 	resp := dto.UserLoginResponse{
 		ID:       user.ID,
 		Username: user.Username,
 		Email:    user.Email,
+		Token:    tokenStr,
 	}
 	return c.JSON(http.StatusOK, resp)
 }

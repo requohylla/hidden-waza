@@ -18,7 +18,7 @@ export class AuthResolver {
         username: result.Username ?? result.username,
         email: result.Email ?? result.email,
       },
-      token: 'dummy-token', // 仮のtokenを返す
+      token: result.Token ?? result.token ?? '', // バックエンドのtokenを返す
     };
   }
 
