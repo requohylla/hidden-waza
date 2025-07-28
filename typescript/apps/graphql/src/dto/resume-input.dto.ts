@@ -1,15 +1,22 @@
 import { InputType, Field } from '@nestjs/graphql';
 
 @InputType()
+@InputType()
+export class SkillItemInput {
+  @Field()
+  type: string;
+
+  @Field()
+  master_id: number;
+
+  @Field()
+  name: string;
+}
+
+@InputType()
 export class SkillsInput {
-  @Field(() => [String])
-  os: string[];
-
-  @Field(() => [String])
-  tools: string[];
-
-  @Field(() => [String])
-  languages: string[];
+  @Field(() => [SkillItemInput])
+  items: SkillItemInput[];
 }
 
 @InputType()

@@ -19,10 +19,14 @@ type LoginResponse {
   token: String!
 }
 
+type SkillItem {
+  type: String!
+  master_id: Float!
+  name: String!
+}
+
 type Skills {
-  os: [String!]!
-  tools: [String!]!
-  languages: [String!]!
+  items: [SkillItem!]!
 }
 
 type Resume {
@@ -85,7 +89,11 @@ input ResumeInput {
 }
 
 input SkillsInput {
-  os: [String!]!
-  tools: [String!]!
-  languages: [String!]!
+  items: [SkillItemInput!]!
+}
+
+input SkillItemInput {
+  type: String!
+  master_id: Float!
+  name: String!
 }

@@ -1,15 +1,22 @@
 import { ObjectType, Field, Int } from '@nestjs/graphql';
 
 @ObjectType()
+@ObjectType()
+export class SkillItem {
+  @Field()
+  type: string;
+
+  @Field()
+  master_id: number;
+
+  @Field()
+  name: string;
+}
+
+@ObjectType()
 export class Skills {
-  @Field(() => [String])
-  os: string[];
-
-  @Field(() => [String])
-  tools: string[];
-
-  @Field(() => [String])
-  languages: string[];
+  @Field(() => [SkillItem])
+  items: SkillItem[];
 }
 
 @ObjectType()

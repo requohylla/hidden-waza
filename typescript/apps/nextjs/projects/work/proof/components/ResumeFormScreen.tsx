@@ -11,9 +11,11 @@ interface Resume {
   description: string
   date: string
   skills: {
-    os: string[]
-    tools: string[]
-    languages: string[]
+    items: {
+      type: 'os' | 'tools' | 'languages'
+      master_id: number
+      name: string
+    }[]
   }
   verified?: boolean
 }
@@ -23,9 +25,9 @@ interface ResumeFormScreenProps {
   onSave: (resumeData: Omit<Resume, 'id' | 'verified'>) => Promise<void>
   onCancel: () => void
   isLoading?: boolean
-  osList: string[]
-  toolsList: string[]
-  languagesList: string[]
+  osList: { id: number, name: string }[]
+  toolsList: { id: number, name: string }[]
+  languagesList: { id: number, name: string }[]
 }
 
 export function ResumeFormScreen({
@@ -44,16 +46,18 @@ export function ResumeFormScreen({
     description: string
     date: string
     skills: {
-      os: string[]
-      tools: string[]
-      languages: string[]
+      items: {
+        type: 'os' | 'tools' | 'languages'
+        master_id: number
+        name: string
+      }[]
     }
   }
   
   // 保存されたフォームデータを復元
   const getSavedFormData = (): FormData => {
     const saved = SessionManager.getFormData(formType)
-    if (saved) {
+    if (saved && saved.skills && Array.isArray(saved.skills.items)) {
       return saved
     }
     
@@ -62,10 +66,8 @@ export function ResumeFormScreen({
       title: resume?.title || '',
       description: resume?.description || '',
       date: resume?.date || '',
-      skills: resume?.skills || {
-        os: [],
-        tools: [],
-        languages: []
+      skills: {
+        items: []
       }
     }
   }
@@ -91,8 +93,12 @@ export function ResumeFormScreen({
 
   // フォームデータ変更時に自動保存
   useEffect(() => {
-    if (formData.title || formData.description || formData.date ||
-        formData.skills.os.length > 0 || formData.skills.tools.length > 0 || formData.skills.languages.length > 0) {
+    if (
+      formData.title ||
+      formData.description ||
+      formData.date ||
+      formData.skills.items.length > 0
+    ) {
       SessionManager.saveFormData(formData, formType)
     }
   }, [formData, formType])
@@ -112,7 +118,7 @@ export function ResumeFormScreen({
       newErrors.date = '日付は必須です'
     }
     
-    if (formData.skills.os.length === 0 && formData.skills.tools.length === 0 && formData.skills.languages.length === 0) {
+    if (formData.skills.items.length === 0) {
       newErrors.skills = '少なくとも1つのスキルを選択してください'
     }
     
@@ -153,10 +159,32 @@ export function ResumeFormScreen({
     }
   }
 
-  const handleSkillsChange = (category: keyof FormData['skills']) => (values: string[]) => {
+  const handleSkillsChange = (category: 'os' | 'tools' | 'languages') => (selectedIds: number[]) => {
+    // 選択されたIDからnameを取得し、skills.itemsにtype/master_id/nameで格納
+    const list =
+      category === 'os'
+        ? osList
+        : category === 'tools'
+        ? toolsList
+        : languagesList
+
+    const selectedItems = selectedIds.map(id => {
+      const found = list.find(item => item.id === id)
+      return found
+        ? { type: category, master_id: id, name: found.name }
+        : { type: category, master_id: id, name: String(id) }
+    })
+
     setFormData((prev: FormData) => ({
       ...prev,
-      skills: { ...prev.skills, [category]: values }
+      skills: {
+        ...prev.skills,
+        items: [
+          // 他カテゴリの既存itemsを残し、同カテゴリは上書き
+          ...prev.skills.items.filter(item => item.type !== category),
+          ...selectedItems
+        ]
+      }
     }))
     if (errors.skills) {
       setErrors((prev: { [key: string]: string }) => ({ ...prev, skills: '' }))
@@ -234,7 +262,7 @@ export function ResumeFormScreen({
                 <nav className="-mb-px flex space-x-6 min-w-max" aria-label="Tabs">
                   {getAllCategories().map((category) => {
                     const isActive = activeTab === category
-                    const selectedCount = formData.skills[category].length
+                    const selectedCount = formData.skills.items.filter(item => item.type === category).length
                     
                     return (
                       <button
@@ -268,33 +296,34 @@ export function ResumeFormScreen({
             <div className="bg-gray-50 rounded-lg p-6 min-h-[300px]">
               <MultiSelectField
                 label={`${SKILL_CATEGORY_LABELS[activeTab]}を選択`}
-                values={formData.skills[activeTab]}
+                values={formData.skills.items.filter(item => item.type === activeTab).map(item => item.master_id)}
                 options={
-                  activeTab === 'os'
+                  (activeTab === 'os'
                     ? osList
                     : activeTab === 'tools'
                     ? toolsList
                     : activeTab === 'languages'
                     ? languagesList
                     : []
+                  ).map(item => ({ value: item.id, label: item.name }))
                 }
                 onChange={handleSkillsChange(activeTab)}
                 placeholder={`${SKILL_CATEGORY_LABELS[activeTab]}を検索・選択してください`}
               />
               
               {/* 選択済みスキルの概要 */}
-              {formData.skills[activeTab].length > 0 && (
+              {formData.skills.items.filter(item => item.type === activeTab).length > 0 && (
                 <div className="mt-4 p-4 bg-white rounded-lg border">
                   <div className="text-sm font-medium text-gray-900 mb-2">
-                    選択済み ({formData.skills[activeTab].length}個)
+                    選択済み ({formData.skills.items.filter(item => item.type === activeTab).length}個)
                   </div>
                   <div className="flex flex-wrap gap-1">
-                    {formData.skills[activeTab].map((skill) => (
+                    {formData.skills.items.filter(item => item.type === activeTab).map((skill) => (
                       <span
-                        key={skill}
+                        key={skill.master_id}
                         className="inline-flex items-center px-2 py-1 rounded text-xs bg-blue-100 text-blue-800"
                       >
-                        {skill}
+                        {skill.name}
                       </span>
                     ))}
                   </div>
@@ -344,7 +373,7 @@ export function ResumeFormScreen({
             </div>
             <div className="space-y-2">
               {getAllCategories().map((category) => {
-                const categorySkills = formData.skills[category]
+                const categorySkills = formData.skills.items.filter(item => item.type === category)
                 if (categorySkills.length === 0) return null
                 
                 return (
@@ -355,19 +384,17 @@ export function ResumeFormScreen({
                     <div className="flex flex-wrap gap-1 mt-1">
                       {categorySkills.map((skill) => (
                         <span
-                          key={skill}
+                          key={skill.master_id}
                           className="inline-flex items-center px-2 py-1 rounded text-xs bg-blue-100 text-blue-800"
                         >
-                          {skill}
+                          {skill.name}
                         </span>
                       ))}
                     </div>
                   </div>
                 )
               })}
-              {formData.skills.os.length === 0 &&
-               formData.skills.tools.length === 0 &&
-               formData.skills.languages.length === 0 && (
+              {formData.skills.items.length === 0 && (
                 <span className="text-xs text-gray-500">スキル: 未選択</span>
               )}
             </div>

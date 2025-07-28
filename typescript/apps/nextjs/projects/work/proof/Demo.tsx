@@ -10,6 +10,7 @@ import { ProfileScreen } from './components/ProfileScreen'
 import { ResumeFormScreen } from './components/ResumeFormScreen'
 import { Navigation } from './components/ui/Navigation'
 import { authApi, resumeApi, skillApi, User, Resume } from './components/api/api'
+// Resume型のskills型を新型（items配列）に統一
 import { getSkills } from './components/data/skills'
 import { SessionManager } from './components/utils/sessionManager'
 
@@ -19,10 +20,16 @@ interface AppState {
   currentView: View
   user: User | null
   resumes: Resume[]
-  skills: string[]
-  osList: string[]
-  toolsList: string[]
-  languagesList: string[]
+  skills: {
+    items: {
+      type: 'os' | 'tools' | 'languages'
+      master_id: number
+      name: string
+    }[]
+  }
+  osList: { id: number; name: string }[]
+  toolsList: { id: number; name: string }[]
+  languagesList: { id: number; name: string }[]
   editingResume: Resume | null
   isLoading: boolean
   isInitializing: boolean
@@ -36,7 +43,7 @@ export default function Demo() {
     currentView: initialSession ? 'profile' : 'login',
     user: initialSession?.user || null,
     resumes: [],
-    skills: [],
+    skills: { items: [] },
     osList: [],
     toolsList: [],
     languagesList: [],
@@ -66,10 +73,10 @@ export default function Demo() {
           // ログイン済みの場合
           const resumes = await resumeApi.getResumes(state.user?.id)
 
-          // APIレスポンスをstring[]に変換
-          const osNames = osList.map((x: any) => x.name)
-          const toolsNames = toolsList.map((x: any) => x.name)
-          const languagesNames = languagesList.map((x: any) => x.name)
+          // APIレスポンスを{id, name}[]に変換
+          const osMaster = osList.map((x: any) => ({ id: x.id, name: x.name }))
+          const toolsMaster = toolsList.map((x: any) => ({ id: x.id, name: x.name }))
+          const languagesMaster = languagesList.map((x: any) => ({ id: x.id, name: x.name }))
 
           // 保存されたビューがあれば復元
           if (savedView && (savedView === 'profile' || savedView === 'create' || savedView === 'edit')) {
@@ -80,23 +87,23 @@ export default function Demo() {
             ...prev,
             currentView: targetView,
             resumes,
-            skills,
-            osList: osNames,
-            toolsList: toolsNames,
-            languagesList: languagesNames,
+            skills: { items: [] },
+            osList: osMaster,
+            toolsList: toolsMaster,
+            languagesList: languagesMaster,
             isInitializing: false
           }))
         } else {
           // 未ログインの場合はスキルのみ設定
-          const osNames = osList.map((x: any) => x.name)
-          const toolsNames = toolsList.map((x: any) => x.name)
-          const languagesNames = languagesList.map((x: any) => x.name)
+          const osMaster = osList.map((x: any) => ({ id: x.id, name: x.name }))
+          const toolsMaster = toolsList.map((x: any) => ({ id: x.id, name: x.name }))
+          const languagesMaster = languagesList.map((x: any) => ({ id: x.id, name: x.name }))
           setState(prev => ({
             ...prev,
-            skills,
-            osList: osNames,
-            toolsList: toolsNames,
-            languagesList: languagesNames,
+            skills: { items: [] },
+            osList: osMaster,
+            toolsList: toolsMaster,
+            languagesList: languagesMaster,
             isInitializing: false
           }))
         }
@@ -104,7 +111,7 @@ export default function Demo() {
         console.error('初期化エラー:', error)
         setState(prev => ({
           ...prev,
-          skills: getSkills(),
+          skills: { items: [] },
           isInitializing: false
         }))
       }
@@ -295,7 +302,12 @@ export default function Demo() {
         {state.currentView === 'profile' && state.user && (
           <ProfileScreen
             user={state.user}
-            resumes={state.resumes}
+            resumes={state.resumes.map(resume => ({
+              ...resume,
+              skills: resume.skills && Array.isArray(resume.skills.items)
+                ? { items: resume.skills.items }
+                : { items: [] }
+            }))}
             onCreateNew={() => handleNavigate('create')}
             onEditResume={handleEditResume}
             onDeleteResume={handleDeleteResume}
@@ -315,7 +327,12 @@ export default function Demo() {
         
         {state.currentView === 'edit' && state.editingResume && (
           <ResumeFormScreen
-            resume={state.editingResume}
+            resume={state.editingResume ? {
+              ...state.editingResume,
+              skills: state.editingResume.skills?.items
+                ? state.editingResume.skills
+                : { items: [] }
+            } : undefined}
             onSave={handleUpdateResume}
             onCancel={handleCancel}
             isLoading={state.isLoading}

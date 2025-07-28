@@ -7,9 +7,11 @@ interface Resume {
   description: string
   date: string
   skills: {
-    os: string[]
-    tools: string[]
-    languages: string[]
+    items: {
+      type: 'os' | 'tools' | 'languages'
+      master_id: number
+      name: string
+    }[]
   }
   verified: boolean
   createdAt: string
@@ -96,7 +98,7 @@ export function ProfileScreen({
             <div className="ml-4">
               <p className="text-sm font-medium text-gray-600">スキル種類</p>
               <p className="text-2xl font-bold text-gray-900">
-                {new Set(resumes.flatMap(r => [...r.skills.os, ...r.skills.tools, ...r.skills.languages])).size}
+                {new Set(resumes.flatMap(r => r.skills.items.map(item => item.name))).size}
               </p>
             </div>
           </div>
@@ -142,19 +144,21 @@ export function ProfileScreen({
                       <div className="flex items-start">
                         <TagIcon className="h-4 w-4 mr-1 mt-0.5" />
                         <div className="flex flex-wrap gap-1">
-                          {[...resume.skills.os, ...resume.skills.tools, ...resume.skills.languages]
+                          {(() => {console.log('skills.items:', resume); return null;})()}
+                          {resume.skills.items
+                            .map((item) => item.name)
                             .slice(0, 3)
-                            .map((skill, index) => (
+                            .map((name, index) => (
                               <span
                                 key={index}
                                 className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-blue-100 text-blue-800"
                               >
-                                {skill}
+                                {name}
                               </span>
                             ))}
-                          {[...resume.skills.os, ...resume.skills.tools, ...resume.skills.languages].length > 3 && (
+                          {resume.skills.items.length > 3 && (
                             <span className="text-xs text-gray-500">
-                              +{[...resume.skills.os, ...resume.skills.tools, ...resume.skills.languages].length - 3}
+                              +{resume.skills.items.length - 3}
                             </span>
                           )}
                         </div>

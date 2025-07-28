@@ -17,9 +17,11 @@ export interface FormData {
   description: string
   date: string
   skills: {
-    os: string[]
-    tools: string[]
-    languages: string[]
+    items: {
+      type: 'os' | 'tools' | 'languages'
+      master_id: number
+      name: string
+    }[]
   }
 }
 

@@ -15,9 +15,11 @@ export interface Resume {
   description: string;
   date: string;
   skills: {
-    os: string[];
-    tools: string[];
-    languages: string[];
+    items: {
+      type: 'os' | 'tools' | 'languages';
+      master_id: number;
+      name: string;
+    }[];
   };
   verified: boolean;
   createdAt: string;
@@ -85,7 +87,13 @@ export const resumeApi = {
           title
           description
           date
-          skills { os tools languages }
+          skills {
+            items {
+              type
+              master_id
+              name
+            }
+          }
           verified
           createdAt
           updatedAt
@@ -94,7 +102,13 @@ export const resumeApi = {
     `;
     const variables = userId !== undefined ? { userId } : {};
     const data = await client.request<{ resumes: Resume[] }>(query, variables);
-    return data.resumes;
+    // skills型をitems配列のみで扱う
+    return data.resumes.map((resume) => ({
+      ...resume,
+      skills: {
+        items: Array.isArray(resume.skills?.items) ? resume.skills.items : []
+      }
+    }));
   },
   async createResume(resumeData: Omit<Resume, 'id' | 'userId' | 'verified' | 'createdAt' | 'updatedAt'>) {
     const mutation = gql`
@@ -105,7 +119,13 @@ export const resumeApi = {
           title
           description
           date
-          skills { os tools languages }
+          skills {
+            items {
+              type
+              master_id
+              name
+            }
+          }
           verified
           createdAt
           updatedAt
