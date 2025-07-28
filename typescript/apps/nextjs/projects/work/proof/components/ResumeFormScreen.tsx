@@ -59,9 +59,9 @@ export function ResumeFormScreen({
 
   const initialSkills =
     resume && resume.skills && Array.isArray(resume.skills.items)
-      ? resume.skills.items
+      ? [...resume.skills.items]
       : Array.isArray(resume?.skills)
-        ? resume.skills
+        ? [...resume.skills]
         : [];
   
   // 保存されたフォームデータを復元
@@ -77,41 +77,47 @@ export function ResumeFormScreen({
       description: resume?.description || '',
       date: resume?.date || '',
       skills: {
-        items: []
+        items: initialSkills
       }
     }
   }
 
   const [formData, setFormData] = useState<FormData>(getSavedFormData)
   const [errors, setErrors] = useState<{ [key: string]: string }>({})
-  const [activeTab, setActiveTab] = useState<SkillCategory>('os')
+  // activeTabの初期値を「最初に存在するカテゴリ」にする
+  const initialActiveTab = (() => {
+    if (resume && resume.skills && Array.isArray(resume.skills.items) && resume.skills.items.length > 0) {
+      return resume.skills.items[0].type as SkillCategory;
+    }
+    return 'os';
+  })();
+  const [activeTab, setActiveTab] = useState<SkillCategory>(initialActiveTab)
 
   // 編集時は既存データをセット（ただし保存データがあれば優先）
   useEffect(() => {
     if (resume) {
-      const saved = SessionManager.getFormData('edit')
-      if (!saved) {
-        setFormData({
-          title: resume.title,
-          description: resume.description,
-          date: resume.date,
-          skills: resume.skills
-        })
-      }
+      // skills.itemsが複数カテゴリ含む場合でもキャッシュクリアして全てセット
+      SessionManager.clearFormData('edit');
+      setFormData({
+        title: resume.title,
+        description: resume.description,
+        date: resume.date,
+        skills: {
+          items: Array.isArray(resume.skills?.items)
+            ? [...resume.skills.items]
+            : Array.isArray(resume.skills)
+              ? [...resume.skills]
+              : []
+        }
+      });
+      // activeTabを初期化（最初に存在するカテゴリに切り替え）
+      const firstTab =
+        Array.isArray(resume.skills?.items) && resume.skills.items.length > 0
+          ? resume.skills.items[0].type
+          : 'os';
+      setActiveTab(firstTab);
     }
   }, [resume])
-
-  // フォームデータ変更時に自動保存
-  useEffect(() => {
-    if (
-      formData.title ||
-      formData.description ||
-      formData.date ||
-      formData.skills.items.length > 0
-    ) {
-      SessionManager.saveFormData(formData, formType)
-    }
-  }, [formData, formType])
 
   const validate = () => {
     const newErrors: { [key: string]: string } = {}
@@ -185,17 +191,25 @@ export function ResumeFormScreen({
         : { type: category, master_id: id, name: String(id) }
     })
 
-    setFormData((prev: FormData) => ({
-      ...prev,
-      skills: {
-        ...prev.skills,
-        items: [
-          // 他カテゴリの既存itemsを残し、同カテゴリは上書き
-          ...prev.skills.items.filter(item => item.type !== category),
-          ...selectedItems
-        ]
-      }
-    }))
+    setFormData((prev: FormData) => {
+      // 既存itemsをカテゴリごとにグループ化
+      const grouped: { [key: string]: any[] } = {};
+      prev.skills.items.forEach(item => {
+        if (!grouped[item.type]) grouped[item.type] = [];
+        grouped[item.type].push(item);
+      });
+      // 現在のカテゴリだけselectedItemsで上書き
+      grouped[category] = selectedItems;
+      // 全カテゴリ分を結合
+      const mergedItems = Object.values(grouped).flat();
+      return {
+        ...prev,
+        skills: {
+          ...prev.skills,
+          items: mergedItems
+        }
+      };
+    });
     if (errors.skills) {
       setErrors((prev: { [key: string]: string }) => ({ ...prev, skills: '' }))
     }
@@ -308,14 +322,18 @@ export function ResumeFormScreen({
                 label={`${SKILL_CATEGORY_LABELS[activeTab]}を選択`}
                 values={formData.skills.items.filter(item => item.type === activeTab).map(item => item.master_id)}
                 options={
-                  (activeTab === 'os'
-                    ? osList
-                    : activeTab === 'tools'
-                    ? toolsList
-                    : activeTab === 'languages'
-                    ? languagesList
-                    : []
-                  ).map(item => ({ value: item.id, label: item.name }))
+                  (
+                    activeTab === 'os'
+                      ? osList
+                      : activeTab === 'tools'
+                      ? toolsList
+                      : activeTab === 'languages'
+                      ? languagesList
+                      : []
+                  ).map(item => ({
+                    value: item.id,
+                    label: item.name ?? `ID:${item.id}`
+                  }))
                 }
                 onChange={handleSkillsChange(activeTab)}
                 placeholder={`${SKILL_CATEGORY_LABELS[activeTab]}を検索・選択してください`}

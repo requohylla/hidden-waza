@@ -80,7 +80,7 @@ return res.data.map((item: any) => ({
     return {
       ...data,
       userId: data.user_id,
-      description: data.description ?? "",
+      description: data.summary ?? "",
       date: data.date ?? "",
       verified: data.verified ?? false,
       createdAt: data.createdAt ?? "",

@@ -128,15 +128,24 @@ export class ResumeResolver {
       return String(master_id);
     };
 
+    function normalizeSkillItems(skills: any[], masterName: (type: string, master_id: number) => string) {
+      return skills.map((s: any) => {
+        let type = s.type;
+        if (type === 'tool') type = 'tools';
+        if (type === 'language') type = 'languages';
+        return {
+          ...s,
+          type,
+          name: masterName(type, s.master_id)
+        };
+      });
+    }
+
     let items: any[] = [];
     if (resume.skills && Array.isArray(resume.skills)) {
-      items = resume.skills.map((s: any) => ({
-        type: s.type,
-        master_id: s.master_id,
-        name: masterName(s.type, s.master_id)
-      }));
+      items = normalizeSkillItems(resume.skills, masterName);
     } else if (resume.skills && Array.isArray(resume.skills.items)) {
-      items = resume.skills.items;
+      items = normalizeSkillItems(resume.skills.items, masterName);
     }
     return {
       ...resume,
