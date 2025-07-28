@@ -67,6 +67,20 @@ func convertSkillDTOs(dtos []dto.SkillDTO) []domain.Skill {
 	return skills
 }
 
+// domain.Skill → dto.SkillDTO変換
+func convertDomainSkillsToDTO(skills []domain.Skill) []dto.SkillDTO {
+	var dtos []dto.SkillDTO
+	for _, s := range skills {
+		dtos = append(dtos, dto.SkillDTO{
+			Type:     s.Type,
+			MasterID: s.MasterID,
+			Level:    s.Level,
+			Years:    s.Years,
+		})
+	}
+	return dtos
+}
+
 // ExperienceDTOからdomain.Experienceへの変換
 // DTOとドメインモデルの構造やフィールド名が異なる場合もここで吸収可能
 func convertExperienceDTOs(dtos []dto.ExperienceDTO) []domain.Experience {
@@ -103,7 +117,15 @@ func (h *ResumeHandler) GetResumeByID(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusNotFound, map[string]string{"error": "not found"})
 	}
-	return c.JSON(http.StatusOK, resume)
+	// domain.Resume → dto.ResumeDTO 変換
+	dtoResume := dto.ResumeDTO{
+		UserID:      resume.UserID,
+		Title:       resume.Title,
+		Summary:     resume.Summary,
+		Skills:      convertDomainSkillsToDTO(resume.Skills),
+		Experiences: []dto.ExperienceDTO{}, // 必要なら変換
+	}
+	return c.JSON(http.StatusOK, dtoResume)
 }
 
 func (h *ResumeHandler) GetResumesByUserID(c echo.Context) error {

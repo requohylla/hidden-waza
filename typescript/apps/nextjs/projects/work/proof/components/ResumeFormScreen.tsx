@@ -40,7 +40,10 @@ export function ResumeFormScreen({
   languagesList,
 }: ResumeFormScreenProps) {
   const formType = resume ? 'edit' : 'create'
-  
+
+  // skills初期値生成: items配列 or SkillDTO[]配列
+  // 既存の宣言を削除し、初期値生成を一箇所に統一
+
   type FormData = {
     title: string
     description: string
@@ -53,6 +56,13 @@ export function ResumeFormScreen({
       }[]
     }
   }
+
+  const initialSkills =
+    resume && resume.skills && Array.isArray(resume.skills.items)
+      ? resume.skills.items
+      : Array.isArray(resume?.skills)
+        ? resume.skills
+        : [];
   
   // 保存されたフォームデータを復元
   const getSavedFormData = (): FormData => {

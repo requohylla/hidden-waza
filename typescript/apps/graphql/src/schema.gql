@@ -59,6 +59,7 @@ type Language {
 type Query {
   hello: String!
   resumes(userId: Int): [Resume!]!
+  resume(id: Int!): Resume!
   osList: [OS!]!
   toolsList: [Tool!]!
   languagesList: [Language!]!

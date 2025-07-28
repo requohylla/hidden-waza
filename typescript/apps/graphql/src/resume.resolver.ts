@@ -100,4 +100,47 @@ export class ResumeResolver {
   ): Promise<Resume> {
     return await this.backendApi.createResume(input);
   }
+
+  @Query(() => Resume, { name: 'resume' })
+  async getResume(
+    @Args('id', { type: () => Int }) id: number
+  ) {
+    const osList: OS[] = await this.backendApi.getOSList();
+    const toolsList: Tool[] = await this.backendApi.getTools();
+    const languagesList: Language[] = await this.backendApi.getLanguages();
+    setMasterLists(osList, toolsList, languagesList);
+    const resume = await this.backendApi.getResume(id);
+    if (!resume) return null;
+
+    const masterName = (type: string, master_id: number) => {
+      if (type === 'os') {
+        const found = osList.find((m: any) => m.id === master_id);
+        return found ? found.name : String(master_id);
+      }
+      if (type === 'tool' || type === 'tools') {
+        const found = toolsList.find((m: any) => m.id === master_id);
+        return found ? found.name : String(master_id);
+      }
+      if (type === 'language' || type === 'languages') {
+        const found = languagesList.find((m: any) => m.id === master_id);
+        return found ? found.name : String(master_id);
+      }
+      return String(master_id);
+    };
+
+    let items: any[] = [];
+    if (resume.skills && Array.isArray(resume.skills)) {
+      items = resume.skills.map((s: any) => ({
+        type: s.type,
+        master_id: s.master_id,
+        name: masterName(s.type, s.master_id)
+      }));
+    } else if (resume.skills && Array.isArray(resume.skills.items)) {
+      items = resume.skills.items;
+    }
+    return {
+      ...resume,
+      skills: { items }
+    };
+  }
 }

@@ -309,7 +309,15 @@ export default function Demo() {
                 : { items: [] }
             }))}
             onCreateNew={() => handleNavigate('create')}
-            onEditResume={handleEditResume}
+            onEditResume={async (resumeId: number) => {
+              // 編集画面に遷移する際、APIから最新のresumeデータを取得
+              const resume = await resumeApi.getResumeById(resumeId);
+              setState(prev => ({
+                ...prev,
+                editingResume: resume,
+                currentView: 'edit'
+              }));
+            }}
             onDeleteResume={handleDeleteResume}
           />
         )}
@@ -331,7 +339,9 @@ export default function Demo() {
               ...state.editingResume,
               skills: state.editingResume.skills?.items
                 ? state.editingResume.skills
-                : { items: [] }
+                : Array.isArray(state.editingResume.skills)
+                  ? { items: state.editingResume.skills }
+                  : { items: [] }
             } : undefined}
             onSave={handleUpdateResume}
             onCancel={handleCancel}

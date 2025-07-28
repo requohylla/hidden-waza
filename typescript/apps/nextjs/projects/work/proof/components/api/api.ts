@@ -110,6 +110,40 @@ export const resumeApi = {
       }
     }));
   },
+
+  async getResumeById(resumeId: number) {
+    const query = gql`
+      query GetResume($id: Int!) {
+        resume(id: $id) {
+          id
+          userId
+          title
+          description
+          date
+          skills {
+            items {
+              type
+              master_id
+              name
+            }
+          }
+          verified
+          createdAt
+          updatedAt
+        }
+      }
+    `;
+    const variables = { id: resumeId };
+    const data = await client.request<{ resume: Resume }>(query, variables);
+    return data.resume
+      ? {
+          ...data.resume,
+          skills: {
+            items: Array.isArray(data.resume.skills?.items) ? data.resume.skills.items : []
+          }
+        }
+      : null;
+  },
   async createResume(resumeData: Omit<Resume, 'id' | 'userId' | 'verified' | 'createdAt' | 'updatedAt'>) {
     const mutation = gql`
       mutation CreateResume($input: ResumeInput!) {

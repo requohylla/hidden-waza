@@ -39,7 +39,7 @@ import "time"
 
 type Resume struct {
 	ID          uint         `json:"id"`
-	UserID      uint         `json:"user_id"`
+	UserID      uint         `json:"user_id" gorm:"column:user_id"`
 	Title       string       `json:"title"`
 	Summary     string       `json:"summary"`
 	Skills      []Skill      `json:"skills"`

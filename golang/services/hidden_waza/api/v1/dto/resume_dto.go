@@ -30,6 +30,7 @@ type ExperienceDTO struct {
 // ドメイン層の [`Resume`](services/hidden_waza/internal/domain/resume.go:6) と相互変換されます。
 // 変換処理は [`resume_handler.go`](services/hidden_waza/internal/handler/resume_handler.go) のconvertSkillDTOs/convertExperienceDTOs等で実装されています。
 type ResumeDTO struct {
+	ID          uint            `json:"id"`
 	UserID      uint            `json:"user_id"`
 	Title       string          `json:"title"`
 	Summary     string          `json:"summary"`

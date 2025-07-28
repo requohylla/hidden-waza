@@ -71,6 +71,22 @@ return res.data.map((item: any) => ({
     const res = await axios.post(`${BASE_URL}/resume`, resume);
     return res.data;
   }
+
+  async getResume(id: number) {
+    const url = `${BASE_URL}/resume/${id}`;
+    const res = await axios.get(url);
+    const data = res.data;
+    // user_id → userId へ変換
+    return {
+      ...data,
+      userId: data.user_id,
+      description: data.description ?? "",
+      date: data.date ?? "",
+      verified: data.verified ?? false,
+      createdAt: data.createdAt ?? "",
+      updatedAt: data.updatedAt ?? "",
+    };
+  }
 }
 
 // --- 追加: id→name変換用のマスターデータを保持するグローバル変数 ---
