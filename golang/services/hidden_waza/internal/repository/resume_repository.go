@@ -36,19 +36,43 @@ func (r *ResumeRepository) Create(resume *domain.Resume) error {
 func (r *ResumeRepository) GetAll() ([]domain.Resume, error) {
 	var resumes []domain.Resume
 	err := r.db.Find(&resumes).Error
-	return resumes, err
+	if err != nil {
+		return nil, err
+	}
+	r.AttachSkills(resumes)
+	return resumes, nil
 }
 
 // GetByUserIDは、指定ユーザーIDのResumeレコードを全件取得します。
 func (r *ResumeRepository) GetByUserID(userID uint) ([]domain.Resume, error) {
 	var resumes []domain.Resume
 	err := r.db.Where("user_id = ?", userID).Find(&resumes).Error
-	return resumes, err
+	if err != nil {
+		return nil, err
+	}
+	r.AttachSkills(resumes)
+	return resumes, nil
 }
 
 // GetByIDは、主キーIDでResumeレコードを1件取得します。
 func (r *ResumeRepository) GetByID(id uint) (*domain.Resume, error) {
 	var resume domain.Resume
 	err := r.db.First(&resume, id).Error
-	return &resume, err
+	if err != nil {
+		return nil, err
+	}
+	// skillsを取得してセット
+	var skills []domain.Skill
+	r.db.Where("resume_id = ?", resume.ID).Find(&skills)
+	resume.Skills = skills
+	return &resume, nil
+}
+
+// 共通: skills取得処理
+func (r *ResumeRepository) AttachSkills(resumes []domain.Resume) {
+	for i := range resumes {
+		var skills []domain.Skill
+		r.db.Where("resume_id = ?", resumes[i].ID).Find(&skills)
+		resumes[i].Skills = skills
+	}
 }
