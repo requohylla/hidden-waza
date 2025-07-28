@@ -37,9 +37,27 @@ type Resume {
   updatedAt: String!
 }
 
+type OS {
+  id: Int!
+  name: String!
+}
+
+type Tool {
+  id: Int!
+  name: String!
+}
+
+type Language {
+  id: Int!
+  name: String!
+}
+
 type Query {
   hello: String!
   resumes(userId: Int): [Resume!]!
+  osList: [OS!]!
+  toolsList: [Tool!]!
+  languagesList: [Language!]!
 }
 
 type Mutation {

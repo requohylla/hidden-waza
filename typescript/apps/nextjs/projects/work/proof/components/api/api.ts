@@ -134,5 +134,41 @@ export const skillApi = {
     `;
     const data = await client.request<{ skills: string[] }>(query);
     return data.skills;
+  },
+  async getOSList() {
+    const query = gql`
+      query {
+        osList {
+          id
+          name
+        }
+      }
+    `;
+    const data = await client.request<{ osList: { id: number; name: string }[] }>(query);
+    return data.osList;
+  },
+  async getTools() {
+    const query = gql`
+      query {
+        toolsList {
+          id
+          name
+        }
+      }
+    `;
+    const data = await client.request<{ toolsList: { id: number; name: string }[] }>(query);
+    return data.toolsList;
+  },
+  async getLanguages() {
+    const query = gql`
+      query {
+        languagesList {
+          id
+          name
+        }
+      }
+    `;
+    const data = await client.request<{ languagesList: { id: number; name: string }[] }>(query);
+    return data.languagesList;
   }
 };

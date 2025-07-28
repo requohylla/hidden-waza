@@ -23,13 +23,19 @@ interface ResumeFormScreenProps {
   onSave: (resumeData: Omit<Resume, 'id' | 'verified'>) => Promise<void>
   onCancel: () => void
   isLoading?: boolean
+  osList: string[]
+  toolsList: string[]
+  languagesList: string[]
 }
 
 export function ResumeFormScreen({
   resume,
   onSave,
   onCancel,
-  isLoading = false
+  isLoading = false,
+  osList,
+  toolsList,
+  languagesList,
 }: ResumeFormScreenProps) {
   const formType = resume ? 'edit' : 'create'
   
@@ -263,7 +269,15 @@ export function ResumeFormScreen({
               <MultiSelectField
                 label={`${SKILL_CATEGORY_LABELS[activeTab]}を選択`}
                 values={formData.skills[activeTab]}
-                options={getSkillsByCategory(activeTab)}
+                options={
+                  activeTab === 'os'
+                    ? osList
+                    : activeTab === 'tools'
+                    ? toolsList
+                    : activeTab === 'languages'
+                    ? languagesList
+                    : []
+                }
                 onChange={handleSkillsChange(activeTab)}
                 placeholder={`${SKILL_CATEGORY_LABELS[activeTab]}を検索・選択してください`}
               />

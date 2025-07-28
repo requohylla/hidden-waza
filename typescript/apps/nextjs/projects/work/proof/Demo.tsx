@@ -20,6 +20,9 @@ interface AppState {
   user: User | null
   resumes: Resume[]
   skills: string[]
+  osList: string[]
+  toolsList: string[]
+  languagesList: string[]
   editingResume: Resume | null
   isLoading: boolean
   isInitializing: boolean
@@ -34,6 +37,9 @@ export default function Demo() {
     user: initialSession?.user || null,
     resumes: [],
     skills: [],
+    osList: [],
+    toolsList: [],
+    languagesList: [],
     editingResume: null,
     isLoading: false,
     isInitializing: !!initialSession // セッションがある場合のみ初期化フラグ
@@ -45,6 +51,12 @@ export default function Demo() {
       try {
         // スキル一覧取得
         const skills = getSkills()
+        // BFFからOS, Tools, Languagesを取得
+        const [osList, toolsList, languagesList] = await Promise.all([
+          skillApi.getOSList(),
+          skillApi.getTools(),
+          skillApi.getLanguages()
+        ])
         
         // 保存されたビューを復元
         const savedView = SessionManager.getCurrentView()
@@ -53,24 +65,38 @@ export default function Demo() {
         if (state.user) {
           // ログイン済みの場合
           const resumes = await resumeApi.getResumes(state.user?.id)
-          
+
+          // APIレスポンスをstring[]に変換
+          const osNames = osList.map((x: any) => x.name)
+          const toolsNames = toolsList.map((x: any) => x.name)
+          const languagesNames = languagesList.map((x: any) => x.name)
+
           // 保存されたビューがあれば復元
           if (savedView && (savedView === 'profile' || savedView === 'create' || savedView === 'edit')) {
             targetView = savedView as any
           }
-          
+
           setState(prev => ({
             ...prev,
             currentView: targetView,
             resumes,
             skills,
+            osList: osNames,
+            toolsList: toolsNames,
+            languagesList: languagesNames,
             isInitializing: false
           }))
         } else {
           // 未ログインの場合はスキルのみ設定
+          const osNames = osList.map((x: any) => x.name)
+          const toolsNames = toolsList.map((x: any) => x.name)
+          const languagesNames = languagesList.map((x: any) => x.name)
           setState(prev => ({
             ...prev,
             skills,
+            osList: osNames,
+            toolsList: toolsNames,
+            languagesList: languagesNames,
             isInitializing: false
           }))
         }
@@ -130,6 +156,9 @@ export default function Demo() {
         user: null,
         resumes: [],
         skills: state.skills,
+        osList: [],
+        toolsList: [],
+        languagesList: [],
         editingResume: null,
         isLoading: false,
         isInitializing: false
@@ -278,6 +307,9 @@ export default function Demo() {
             onSave={handleCreateResume}
             onCancel={handleCancel}
             isLoading={state.isLoading}
+            osList={state.osList}
+            toolsList={state.toolsList}
+            languagesList={state.languagesList}
           />
         )}
         
@@ -287,6 +319,9 @@ export default function Demo() {
             onSave={handleUpdateResume}
             onCancel={handleCancel}
             isLoading={state.isLoading}
+            osList={state.osList}
+            toolsList={state.toolsList}
+            languagesList={state.languagesList}
           />
         )}
       </main>      

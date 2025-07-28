@@ -16,7 +16,10 @@ import { ConfigModule } from '@nestjs/config';
   providers: [
     HelloResolver,
     require('./auth.resolver').AuthResolver,
-    require('./resume.resolver').ResumeResolver
+    require('./resume.resolver').ResumeResolver,
+    require('./os.resolver').OSResolver,
+    require('./tools.resolver').ToolsResolver,
+    require('./languages.resolver').LanguagesResolver
   ],
 })
 export class AppModule {}
