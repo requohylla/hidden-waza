@@ -58,19 +58,17 @@ export function ProfileScreen({
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
       {/* User Profile Section */}
-      <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 items-center">
-          <div className="flex items-center space-x-4 col-span-2">
-            <div className="h-16 w-16 bg-blue-600 rounded-full flex items-center justify-center">
-              <span className="text-white text-xl font-bold">
+      <div className="bg-white rounded-xl shadow-lg border p-6 mb-8">
+        <div className="flex flex-col items-center justify-center gap-4 w-full">
+          <div className="flex flex-col items-center gap-3 w-full min-w-0">
+            <div className="h-16 w-16 bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow ring-4 ring-blue-200 mx-auto">
+              <span className="text-white text-2xl font-extrabold tracking-wide drop-shadow">
                 {user.name.charAt(0)}
               </span>
             </div>
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 break-words">{user.name}</h1>
-              <p className="text-gray-600 break-all">{user.email}</p>
-              <p className="text-sm text-gray-500">登録日: {formatDate(user.joinDate)}</p>
-            </div>
+            <h1 className="text-lg sm:text-xl md:text-2xl font-bold text-gray-900 tracking-wide text-center break-words truncate w-full max-w-full overflow-hidden">{user.name}</h1>
+            <p className="text-base text-gray-500 font-medium text-center break-all w-full">{user.email}</p>
+            <p className="text-sm text-gray-400 text-center mt-1 w-full">登録日: {formatDate(user.joinDate)}</p>
           </div>
         </div>
       </div>
