@@ -49,27 +49,48 @@ export class BackendApiService {
     if (userId !== undefined) {
       url = `${BASE_URL}/resume/user/${userId}`;
     }
-    const res = await axios.get(url);
-    // Go APIのレスポンスをGraphQLのResume型に変換
-    return res.data.map((item: any) => ({
-      id: item.id,
-      userId: item.user_id,
-      title: item.title,
-      description: item.summary ?? '', // summary→description
-      date: '', // 必要ならitem.created_at等を加工
-      skills: {
-        os: (item.skills || []).filter((s: any) => s.type === 'os').map((s: any) => s.master_id),
-        tools: (item.skills || []).filter((s: any) => s.type === 'tool').map((s: any) => s.master_id),
-        languages: (item.skills || []).filter((s: any) => s.type === 'language').map((s: any) => s.master_id),
-      },
-      verified: false,
-      createdAt: item.created_at ?? '',
-      updatedAt: item.updated_at ?? '',
-    }));
+    
+const res = await axios.get(url);
+// Go APIのレスポンスをGraphQLのResume型に変換
+return res.data.map((item: any) => ({
+  id: item.id,
+  userId: item.user_id,
+  title: item.title,
+  description: item.summary ?? item.description ?? '', // summary優先、なければdescription
+  date: item.date ?? item.created_at ?? '', // date優先、なければcreated_at
+  skills: Array.isArray(item.skills)
+    ? {
+        os: item.skills.filter((s: any) => s.type === 'os').map((s: any) => findMasterName(s.master_id, globalOsList)),
+        tools: item.skills.filter((s: any) => s.type === 'tool').map((s: any) => findMasterName(s.master_id, globalToolsList)),
+        languages: item.skills.filter((s: any) => s.type === 'language').map((s: any) => findMasterName(s.master_id, globalLanguagesList)),
+      }
+    : { os: [], tools: [], languages: [] },
+  verified: !!item.verified,
+  createdAt: item.created_at ?? '',
+  updatedAt: item.updated_at ?? '',
+}));
   }
 
   async createResume(resume: any) {
     const res = await axios.post(`${BASE_URL}/resume`, resume);
     return res.data;
   }
+}
+
+// --- 追加: id→name変換用のマスターデータを保持するグローバル変数 ---
+let globalOsList: { id: number, name: string }[] = [];
+let globalToolsList: { id: number, name: string }[] = [];
+let globalLanguagesList: { id: number, name: string }[] = [];
+
+// マスターデータをセットする関数
+export function setMasterLists(osList: any[], toolsList: any[], languagesList: any[]) {
+  globalOsList = osList;
+  globalToolsList = toolsList;
+  globalLanguagesList = languagesList;
+}
+
+// id→name変換
+function findMasterName(id: number, list: { id: number, name: string }[]) {
+  const found = list.find(x => x.id === id);
+  return found ? found.name : String(id);
 }
