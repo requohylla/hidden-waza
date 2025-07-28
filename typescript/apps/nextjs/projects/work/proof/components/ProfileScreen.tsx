@@ -123,12 +123,15 @@ export function ProfileScreen({
             </Button>
           </div>
         ) : (
-          <div className="divide-y divide-gray-200">
+          <div
+            className="divide-y divide-gray-200 max-h-[500px] overflow-y-auto w-full"
+            style={{ minWidth: 0 }}
+          >
             {resumes.map((resume) => (
               <div key={resume.id} className="p-6 hover:bg-gray-50 transition-colors">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-2 mb-2">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between">
+                  <div className="flex-1 w-full">
+                    <div className="flex flex-wrap items-center gap-2 mb-2">
                       <h3 className="text-lg font-medium text-gray-900">{resume.title}</h3>
                       {resume.verified && (
                         <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
@@ -137,7 +140,7 @@ export function ProfileScreen({
                       )}
                     </div>
                     <p className="text-gray-600 mb-3 line-clamp-2">{resume.description}</p>
-                    <div className="flex items-center space-x-4 text-sm text-gray-500">
+                    <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
                       <span className="flex items-center">
                         <CalendarIcon className="h-4 w-4 mr-1" />
                         {formatDate(resume.date)}
@@ -145,7 +148,6 @@ export function ProfileScreen({
                       <div className="flex items-start">
                         <TagIcon className="h-4 w-4 mr-1 mt-0.5" />
                         <div className="flex flex-wrap gap-1">
-                          {(() => {console.log('skills.items:', resume); return null;})()}
                           {resume.skills.items
                             .map((item) => item.name)
                             .slice(0, 3)
@@ -166,7 +168,7 @@ export function ProfileScreen({
                       </div>
                     </div>
                   </div>
-                  <div className="flex space-x-2 ml-4">
+                  <div className="flex space-x-2 mt-4 md:mt-0 md:ml-4">
                     <Button
                       variant="outline"
                       size="sm"
