@@ -15,8 +15,18 @@ interface Resume {
       type: 'os' | 'tools' | 'languages'
       master_id: number
       name: string
+      level: string
+      years: number
     }[]
   }
+  experiences: {
+    company: string
+    position: string
+    start_date: string
+    end_date: string
+    description: string
+    portfolio_url: string
+  }[]
   verified?: boolean
 }
 
@@ -30,6 +40,42 @@ interface ResumeFormScreenProps {
   languagesList: { id: number, name: string }[]
 }
 
+type FormData = {
+  title: string
+  description: string
+  date: string
+  skills: {
+    items: {
+      type: 'os' | 'tools' | 'languages'
+      master_id: number
+      name: string
+      level: string
+      years: number
+    }[]
+  }
+  experiences: {
+    company: string
+    position: string
+    start_date: string
+    end_date: string
+    description: string
+    portfolio_url: string
+  }[]
+}
+
+// 防御的: resumeがundefinedでも必ず空配列
+const safeSkillsItems = (resumeObj: Resume | undefined) =>
+  Array.isArray(resumeObj?.skills?.items)
+    ? resumeObj!.skills.items
+    : Array.isArray(resumeObj?.skills)
+      ? resumeObj!.skills
+      : [];
+
+const safeExperiences = (resumeObj: Resume | undefined) =>
+  Array.isArray(resumeObj?.experiences)
+    ? resumeObj!.experiences
+    : [];
+
 export function ResumeFormScreen({
   resume,
   onSave,
@@ -41,50 +87,35 @@ export function ResumeFormScreen({
 }: ResumeFormScreenProps) {
   const formType = resume ? 'edit' : 'create'
 
-  // skills初期値生成: items配列 or SkillDTO[]配列
-  // 既存の宣言を削除し、初期値生成を一箇所に統一
-
-  type FormData = {
-    title: string
-    description: string
-    date: string
-    skills: {
-      items: {
-        type: 'os' | 'tools' | 'languages'
-        master_id: number
-        name: string
-      }[]
-    }
-  }
-
   const initialSkills =
     resume && resume.skills && Array.isArray(resume.skills.items)
       ? [...resume.skills.items]
       : Array.isArray(resume?.skills)
         ? [...resume.skills]
-        : [];
-  
-  // 保存されたフォームデータを復元
+        : []
+
   const getSavedFormData = (): FormData => {
     const saved = SessionManager.getFormData(formType)
     if (saved && saved.skills && Array.isArray(saved.skills.items)) {
       return saved
     }
-    
-    // 保存データがない場合は初期値
     return {
       title: resume?.title || '',
       description: resume?.description || '',
       date: resume?.date || '',
       skills: {
-        items: initialSkills
-      }
+        items: safeSkillsItems(resume).map(item => ({
+          ...item,
+          level: item.level ?? '',
+          years: item.years ?? 0
+        }))
+      },
+      experiences: safeExperiences(resume)
     }
   }
 
   const [formData, setFormData] = useState<FormData>(getSavedFormData)
   const [errors, setErrors] = useState<{ [key: string]: string }>({})
-  // activeTabの初期値を「最初に存在するカテゴリ」にする
   const initialActiveTab = (() => {
     if (resume && resume.skills && Array.isArray(resume.skills.items) && resume.skills.items.length > 0) {
       return resume.skills.items[0].type as SkillCategory;
@@ -93,24 +124,22 @@ export function ResumeFormScreen({
   })();
   const [activeTab, setActiveTab] = useState<SkillCategory>(initialActiveTab)
 
-  // 編集時は既存データをセット（ただし保存データがあれば優先）
   useEffect(() => {
     if (resume) {
-      // skills.itemsが複数カテゴリ含む場合でもキャッシュクリアして全てセット
       SessionManager.clearFormData('edit');
       setFormData({
         title: resume.title,
         description: resume.description,
         date: resume.date,
         skills: {
-          items: Array.isArray(resume.skills?.items)
-            ? [...resume.skills.items]
-            : Array.isArray(resume.skills)
-              ? [...resume.skills]
-              : []
-        }
+          items: safeSkillsItems(resume).map(item => ({
+            ...item,
+            level: item.level ?? '',
+            years: item.years ?? 0
+          }))
+        },
+        experiences: safeExperiences(resume)
       });
-      // activeTabを初期化（最初に存在するカテゴリに切り替え）
       const firstTab =
         Array.isArray(resume.skills?.items) && resume.skills.items.length > 0
           ? resume.skills.items[0].type
@@ -121,39 +150,47 @@ export function ResumeFormScreen({
 
   const validate = () => {
     const newErrors: { [key: string]: string } = {}
-    
+
     if (!formData.title.trim()) {
       newErrors.title = 'タイトルは必須です'
     }
-    
+
     if (!formData.description.trim()) {
       newErrors.description = '詳細説明は必須です'
     }
-    
+
     if (!formData.date) {
       newErrors.date = '日付は必須です'
     }
-    
+
     if (formData.skills.items.length === 0) {
       newErrors.skills = '少なくとも1つのスキルを選択してください'
     }
-    
+
+    // experiencesのバリデーション
+    formData.experiences.forEach((exp, idx) => {
+      if (!exp.company) newErrors[`exp_company_${idx}`] = '会社名は必須です'
+      if (!exp.position) newErrors[`exp_position_${idx}`] = '役職は必須です'
+      if (!exp.start_date) newErrors[`exp_start_${idx}`] = '開始日は必須です'
+      if (!exp.end_date) newErrors[`exp_end_${idx}`] = '終了日は必須です'
+      if (!exp.description) newErrors[`exp_desc_${idx}`] = '業務内容は必須です'
+    })
+
     return newErrors
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     const validationErrors = validate()
     setErrors(validationErrors)
-    
+
     if (Object.keys(validationErrors).length > 0) {
       return
     }
 
     try {
       await onSave(formData)
-      // 保存成功時にフォームデータをクリア
       SessionManager.clearFormData(formType)
     } catch (error) {
       setErrors({ general: '保存に失敗しました。もう一度お試しください。' })
@@ -161,12 +198,11 @@ export function ResumeFormScreen({
   }
 
   const handleCancel = () => {
-    // キャンセル時にフォームデータをクリア
     SessionManager.clearFormData(formType)
     onCancel()
   }
 
-  const handleInputChange = (field: keyof Omit<FormData, 'skills'>) => (
+  const handleInputChange = (field: keyof Omit<FormData, 'skills' | 'experiences'>) => (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>
   ) => {
     setFormData((prev: FormData) => ({ ...prev, [field]: e.target.value }))
@@ -176,7 +212,6 @@ export function ResumeFormScreen({
   }
 
   const handleSkillsChange = (category: 'os' | 'tools' | 'languages') => (selectedIds: number[]) => {
-    // 選択されたIDからnameを取得し、skills.itemsにtype/master_id/nameで格納
     const list =
       category === 'os'
         ? osList
@@ -187,20 +222,17 @@ export function ResumeFormScreen({
     const selectedItems = selectedIds.map(id => {
       const found = list.find(item => item.id === id)
       return found
-        ? { type: category, master_id: id, name: found.name }
-        : { type: category, master_id: id, name: String(id) }
+        ? { type: category, master_id: id, name: found.name, level: '', years: 0 }
+        : { type: category, master_id: id, name: String(id), level: '', years: 0 }
     })
 
     setFormData((prev: FormData) => {
-      // 既存itemsをカテゴリごとにグループ化
       const grouped: { [key: string]: any[] } = {};
       prev.skills.items.forEach(item => {
         if (!grouped[item.type]) grouped[item.type] = [];
         grouped[item.type].push(item);
       });
-      // 現在のカテゴリだけselectedItemsで上書き
       grouped[category] = selectedItems;
-      // 全カテゴリ分を結合
       const mergedItems = Object.values(grouped).flat();
       return {
         ...prev,
@@ -279,15 +311,12 @@ export function ResumeFormScreen({
                 各カテゴリーから関連するスキルを選択してください（複数選択可能）
               </p>
             </div>
-            
-            {/* タブナビゲーション */}
             <div className="border-b border-gray-200">
               <div className="overflow-x-auto">
                 <nav className="-mb-px flex space-x-6 min-w-max" aria-label="Tabs">
                   {getAllCategories().map((category) => {
                     const isActive = activeTab === category
                     const selectedCount = formData.skills.items.filter(item => item.type === category).length
-                    
                     return (
                       <button
                         key={category}
@@ -315,8 +344,6 @@ export function ResumeFormScreen({
                 </nav>
               </div>
             </div>
-            
-            {/* タブコンテンツ */}
             <div className="bg-gray-50 rounded-lg p-6 min-h-[300px]">
               <MultiSelectField
                 label={`${SKILL_CATEGORY_LABELS[activeTab]}を選択`}
@@ -338,32 +365,213 @@ export function ResumeFormScreen({
                 onChange={handleSkillsChange(activeTab)}
                 placeholder={`${SKILL_CATEGORY_LABELS[activeTab]}を検索・選択してください`}
               />
-              
-              {/* 選択済みスキルの概要 */}
               {formData.skills.items.filter(item => item.type === activeTab).length > 0 && (
                 <div className="mt-4 p-4 bg-white rounded-lg border">
                   <div className="text-sm font-medium text-gray-900 mb-2">
                     選択済み ({formData.skills.items.filter(item => item.type === activeTab).length}個)
                   </div>
                   <div className="flex flex-wrap gap-1">
-                    {formData.skills.items.filter(item => item.type === activeTab).map((skill) => (
-                      <span
-                        key={skill.master_id}
-                        className="inline-flex items-center px-2 py-1 rounded text-xs bg-blue-100 text-blue-800"
-                      >
-                        {skill.name}
-                      </span>
+                    {formData.skills.items.filter(item => item.type === activeTab).map((skill, idx) => (
+                      <div key={skill.master_id} className="flex flex-col items-start bg-blue-50 rounded px-2 py-1 m-1">
+                        <span className="inline-flex items-center text-xs text-blue-800">
+                          {skill.name}
+                        </span>
+                        <InputField
+                          label="レベル"
+                          value={skill.level}
+                          onChange={e => {
+                            const value = e.target.value
+                            setFormData(prev => ({
+                              ...prev,
+                              skills: {
+                                ...prev.skills,
+                                items: prev.skills.items.map((s, i) =>
+                                  s.type === skill.type && s.master_id === skill.master_id
+                                    ? { ...s, level: value }
+                                    : s
+                                )
+                              }
+                            }))
+                          }}
+                          placeholder="例: 初級/中級/上級"
+                          className="mt-1"
+                        />
+                        <InputField
+                          label="経験年数"
+                          type="number"
+                          value={skill.years?.toString() ?? ''}
+                          onChange={e => {
+                            const value = Number(e.target.value)
+                            setFormData(prev => ({
+                              ...prev,
+                              skills: {
+                                ...prev.skills,
+                                items: prev.skills.items.map((s, i) =>
+                                  s.type === skill.type && s.master_id === skill.master_id
+                                    ? { ...s, years: value }
+                                    : s
+                                )
+                              }
+                            }))
+                          }}
+                          placeholder="例: 3"
+                          className="mt-1"
+                        />
+                      </div>
                     ))}
                   </div>
                 </div>
               )}
             </div>
-            
             {errors.skills && (
               <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
                 {errors.skills}
               </div>
             )}
+          </div>
+
+          {/* experiences入力欄 */}
+          <div className="space-y-6 mt-8">
+            <div className="border-b border-gray-200 pb-4">
+              <h3 className="text-lg font-medium text-gray-900 mb-4">職務経歴</h3>
+              <p className="text-sm text-gray-600 mb-6">
+                会社名、役職、期間、説明、ポートフォリオURLを記入してください（複数追加可能）
+              </p>
+            </div>
+            {formData.experiences.map((exp, idx) => (
+              <div key={idx} className="bg-gray-50 rounded-lg p-4 mb-4 border">
+                <InputField
+                  label="会社名"
+                  value={exp.company}
+                  onChange={e => {
+                    const value = e.target.value
+                    setFormData(prev => ({
+                      ...prev,
+                      experiences: prev.experiences.map((ex, i) =>
+                        i === idx ? { ...ex, company: value } : ex
+                      )
+                    }))
+                  }}
+                  required
+                  className="mb-2"
+                  error={errors[`exp_company_${idx}`]}
+                />
+                <InputField
+                  label="役職"
+                  value={exp.position}
+                  onChange={e => {
+                    const value = e.target.value
+                    setFormData(prev => ({
+                      ...prev,
+                      experiences: prev.experiences.map((ex, i) =>
+                        i === idx ? { ...ex, position: value } : ex
+                      )
+                    }))
+                  }}
+                  required
+                  className="mb-2"
+                  error={errors[`exp_position_${idx}`]}
+                />
+                <InputField
+                  label="開始日"
+                  type="date"
+                  value={exp.start_date}
+                  onChange={e => {
+                    const value = e.target.value
+                    setFormData(prev => ({
+                      ...prev,
+                      experiences: prev.experiences.map((ex, i) =>
+                        i === idx ? { ...ex, start_date: value } : ex
+                      )
+                    }))
+                  }}
+                  required
+                  className="mb-2"
+                  error={errors[`exp_start_${idx}`]}
+                />
+                <InputField
+                  label="終了日"
+                  type="date"
+                  value={exp.end_date}
+                  onChange={e => {
+                    const value = e.target.value
+                    setFormData(prev => ({
+                      ...prev,
+                      experiences: prev.experiences.map((ex, i) =>
+                        i === idx ? { ...ex, end_date: value } : ex
+                      )
+                    }))
+                  }}
+                  required
+                  className="mb-2"
+                  error={errors[`exp_end_${idx}`]}
+                />
+                <TextareaField
+                  label="業務内容"
+                  value={exp.description}
+                  onChange={e => {
+                    const value = e.target.value
+                    setFormData(prev => ({
+                      ...prev,
+                      experiences: prev.experiences.map((ex, i) =>
+                        i === idx ? { ...ex, description: value } : ex
+                      )
+                    }))
+                  }}
+                  required
+                  className="mb-2"
+                  error={errors[`exp_desc_${idx}`]}
+                />
+                <InputField
+                  label="ポートフォリオURL"
+                  value={exp.portfolio_url}
+                  onChange={e => {
+                    const value = e.target.value
+                    setFormData(prev => ({
+                      ...prev,
+                      experiences: prev.experiences.map((ex, i) =>
+                        i === idx ? { ...ex, portfolio_url: value } : ex
+                      )
+                    }))
+                  }}
+                  className="mb-2"
+                />
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => {
+                    setFormData(prev => ({
+                      ...prev,
+                      experiences: prev.experiences.filter((_, i) => i !== idx)
+                    }))
+                  }}
+                  className="mt-2"
+                >
+                  削除
+                </Button>
+              </div>
+            ))}
+            <Button
+              type="button"
+              onClick={() => {
+                setFormData(prev => ({
+                  ...prev,
+                  experiences: [
+                    ...prev.experiences,
+                    {
+                      company: '',
+                      position: '',
+                      start_date: '',
+                      end_date: '',
+                      description: '',
+                      portfolio_url: ''
+                    }
+                  ]
+                }))
+              }}
+            >
+              職務経歴を追加
+            </Button>
           </div>
 
           <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
@@ -403,7 +611,6 @@ export function ResumeFormScreen({
               {getAllCategories().map((category) => {
                 const categorySkills = formData.skills.items.filter(item => item.type === category)
                 if (categorySkills.length === 0) return null
-                
                 return (
                   <div key={category}>
                     <span className="text-xs text-gray-500 font-medium">
@@ -415,7 +622,7 @@ export function ResumeFormScreen({
                           key={skill.master_id}
                           className="inline-flex items-center px-2 py-1 rounded text-xs bg-blue-100 text-blue-800"
                         >
-                          {skill.name}
+                          {skill.name}（{skill.level} / {skill.years}年）
                         </span>
                       ))}
                     </div>
@@ -424,6 +631,29 @@ export function ResumeFormScreen({
               })}
               {formData.skills.items.length === 0 && (
                 <span className="text-xs text-gray-500">スキル: 未選択</span>
+              )}
+            </div>
+            <div className="mt-4">
+              <span className="text-xs text-gray-500 font-medium">職務経歴:</span>
+              {formData.experiences.length === 0 ? (
+                <span className="text-xs text-gray-500 ml-2">未入力</span>
+              ) : (
+                <div className="space-y-2 mt-2">
+                  {formData.experiences.map((exp, idx) => (
+                    <div key={idx} className="border rounded p-2 bg-gray-50">
+                      <div className="font-medium">{exp.company} / {exp.position}</div>
+                      <div className="text-xs text-gray-500">
+                        {exp.start_date} ~ {exp.end_date}
+                      </div>
+                      <div className="text-sm">{exp.description}</div>
+                      {exp.portfolio_url && (
+                        <div className="text-xs text-blue-600">
+                          <a href={exp.portfolio_url} target="_blank" rel="noopener noreferrer">{exp.portfolio_url}</a>
+                        </div>
+                      )}
+                    </div>
+                  ))}
+                </div>
               )}
             </div>
           </div>

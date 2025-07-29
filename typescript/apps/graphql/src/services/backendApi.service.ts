@@ -68,7 +68,15 @@ return res.data.map((item: any) => ({
   }
 
   async createResume(resume: any) {
-    const res = await axios.post(`${BASE_URL}/resume`, resume);
+    // Go APIのDTO形式に合わせてPOST
+    const payload = {
+      title: resume.title,
+      summary: resume.description,
+      user_id: resume.userId ?? 1,
+      skills: resume.skills?.items ?? [],
+      experiences: resume.experiences ?? [],
+    };
+    const res = await axios.post(`${BASE_URL}/resume`, payload);
     return res.data;
   }
 

@@ -1,7 +1,3 @@
-// 職務経歴書デモ（本格版）
-// ログイン → プロフィール → 経歴書作成・編集の完全なフロー
-// セッション管理機能付き
-
 'use client'
 
 import { useState, useEffect } from 'react'
@@ -9,12 +5,38 @@ import { LoginScreen } from './components/LoginScreen'
 import { ProfileScreen } from './components/ProfileScreen'
 import { ResumeFormScreen } from './components/ResumeFormScreen'
 import { Navigation } from './components/ui/Navigation'
-import { authApi, resumeApi, skillApi, User, Resume } from './components/api/api'
-// Resume型のskills型を新型（items配列）に統一
+import { authApi, resumeApi, skillApi, User } from './components/api/api'
 import { getSkills } from './components/data/skills'
 import { SessionManager } from './components/utils/sessionManager'
 
 type View = 'login' | 'profile' | 'create' | 'edit'
+
+interface Resume {
+  id: number
+  title: string
+  description: string
+  date: string
+  skills: {
+    items: {
+      type: 'os' | 'tools' | 'languages'
+      master_id: number
+      name: string
+      level: string
+      years: number
+    }[]
+  }
+  experiences: {
+    company: string
+    position: string
+    start_date: string
+    end_date: string
+    description: string
+    portfolio_url: string
+  }[]
+  verified: boolean
+  createdAt: string
+  updatedAt: string
+}
 
 interface AppState {
   currentView: View
@@ -25,6 +47,8 @@ interface AppState {
       type: 'os' | 'tools' | 'languages'
       master_id: number
       name: string
+      level: string
+      years: number
     }[]
   }
   osList: { id: number; name: string }[]
@@ -35,10 +59,52 @@ interface AppState {
   isInitializing: boolean
 }
 
+// より厳密な空配列セット
+function convertResumeApiToResume(apiResume: any): Resume {
+  let skillsArray: any[] = [];
+  if (apiResume && apiResume.skills) {
+    if (Array.isArray(apiResume.skills.items)) {
+      skillsArray = apiResume.skills.items;
+    } else if (Array.isArray(apiResume.skills)) {
+      skillsArray = apiResume.skills;
+    }
+  }
+  let experiencesArray: any[] = [];
+  if (apiResume && Array.isArray(apiResume.experiences)) {
+    experiencesArray = apiResume.experiences;
+  }
+  return {
+    ...apiResume,
+    id: typeof apiResume.id === 'number' ? apiResume.id : 0,
+    skills: {
+      items: Array.isArray(skillsArray)
+        ? skillsArray.map((item: any) => ({
+            ...item,
+            level: item?.level ?? '',
+            years: item?.years ?? 0
+          }))
+        : []
+    },
+    experiences: Array.isArray(experiencesArray)
+      ? experiencesArray.map((exp: any) => ({
+          ...exp,
+          company: exp?.company ?? '',
+          position: exp?.position ?? '',
+          start_date: exp?.start_date ?? '',
+          end_date: exp?.end_date ?? '',
+          description: exp?.description ?? '',
+          portfolio_url: exp?.portfolio_url ?? ''
+        }))
+      : [],
+    verified: apiResume.verified ?? false,
+    createdAt: apiResume.createdAt ?? apiResume.created_at ?? '',
+    updatedAt: apiResume.updatedAt ?? apiResume.updated_at ?? ''
+  }
+}
+
 export default function Demo() {
-  // 初期状態でセッションチェック
   const initialSession = typeof window !== 'undefined' ? SessionManager.getSession() : null
-  
+
   const [state, setState] = useState<AppState>({
     currentView: initialSession ? 'profile' : 'login',
     user: initialSession?.user || null,
@@ -49,36 +115,31 @@ export default function Demo() {
     languagesList: [],
     editingResume: null,
     isLoading: false,
-    isInitializing: !!initialSession // セッションがある場合のみ初期化フラグ
+    isInitializing: !!initialSession
   })
 
-  // 初期化：セッション、ビュー状態、スキル読み込み
   useEffect(() => {
     const initializeApp = async () => {
       try {
-        // スキル一覧取得
         const skills = getSkills()
-        // BFFからOS, Tools, Languagesを取得
         const [osList, toolsList, languagesList] = await Promise.all([
           skillApi.getOSList(),
           skillApi.getTools(),
           skillApi.getLanguages()
         ])
-        
-        // 保存されたビューを復元
+
         const savedView = SessionManager.getCurrentView()
         let targetView = state.currentView
-        
-        if (state.user) {
-          // ログイン済みの場合
-          const resumes = await resumeApi.getResumes(state.user?.id)
 
-          // APIレスポンスを{id, name}[]に変換
+        if (state.user) {
+          const apiResumes = await resumeApi.getResumes(state.user?.id)
+          const resumes = Array.isArray(apiResumes)
+            ? apiResumes.map(convertResumeApiToResume)
+            : []
           const osMaster = osList.map((x: any) => ({ id: x.id, name: x.name }))
           const toolsMaster = toolsList.map((x: any) => ({ id: x.id, name: x.name }))
           const languagesMaster = languagesList.map((x: any) => ({ id: x.id, name: x.name }))
 
-          // 保存されたビューがあれば復元
           if (savedView && (savedView === 'profile' || savedView === 'create' || savedView === 'edit')) {
             targetView = savedView as any
           }
@@ -94,7 +155,6 @@ export default function Demo() {
             isInitializing: false
           }))
         } else {
-          // 未ログインの場合はスキルのみ設定
           const osMaster = osList.map((x: any) => ({ id: x.id, name: x.name }))
           const toolsMaster = toolsList.map((x: any) => ({ id: x.id, name: x.name }))
           const languagesMaster = languagesList.map((x: any) => ({ id: x.id, name: x.name }))
@@ -116,28 +176,27 @@ export default function Demo() {
         }))
       }
     }
-    
+
     initializeApp()
   }, [])
 
-  // ビュー変更時に保存
   useEffect(() => {
     if (state.user && !state.isInitializing) {
       SessionManager.saveCurrentView(state.currentView)
     }
   }, [state.currentView, state.user, state.isInitializing])
 
-  // ログイン処理
   const handleLogin = async (credentials: { email: string; password: string }) => {
     setState(prev => ({ ...prev, isLoading: true }))
-    
+
     try {
       const { user, token } = await authApi.login(credentials)
-      const resumes = await resumeApi.getResumes(user.id)
-      
-      // セッションを保存
+      const apiResumes = await resumeApi.getResumes(user.id)
       SessionManager.saveSession(user, token)
-      
+      const resumes = Array.isArray(apiResumes)
+        ? apiResumes.map(convertResumeApiToResume)
+        : []
+
       setState(prev => ({
         ...prev,
         user,
@@ -152,12 +211,9 @@ export default function Demo() {
     }
   }
 
-  // ナビゲーション処理
   const handleNavigate = (view: 'profile' | 'create' | 'logout') => {
     if (view === 'logout') {
-      // セッションをクリア
       SessionManager.clearSession()
-      
       setState({
         currentView: 'login',
         user: null,
@@ -171,9 +227,7 @@ export default function Demo() {
         isInitializing: false
       })
     } else {
-      // セッション延長
       SessionManager.extendSession()
-      
       setState(prev => ({
         ...prev,
         currentView: view,
@@ -182,14 +236,15 @@ export default function Demo() {
     }
   }
 
-  // 経歴書作成処理
   const handleCreateResume = async (resumeData: Omit<Resume, 'id' | 'userId' | 'verified' | 'createdAt' | 'updatedAt'>) => {
     setState(prev => ({ ...prev, isLoading: true }))
-    
+
     try {
       const newResume = await resumeApi.createResume(resumeData)
-      const updatedResumes = await resumeApi.getResumes()
-      
+      const apiResumes = await resumeApi.getResumes()
+      const updatedResumes = Array.isArray(apiResumes)
+        ? apiResumes.map(convertResumeApiToResume)
+        : []
       setState(prev => ({
         ...prev,
         resumes: updatedResumes,
@@ -202,7 +257,6 @@ export default function Demo() {
     }
   }
 
-  // 経歴書編集処理
   const handleEditResume = (resumeId: number) => {
     const resume = state.resumes.find(r => r.id === resumeId)
     if (resume) {
@@ -214,16 +268,17 @@ export default function Demo() {
     }
   }
 
-  // 経歴書更新処理
   const handleUpdateResume = async (resumeData: Omit<Resume, 'id' | 'userId' | 'verified' | 'createdAt' | 'updatedAt'>) => {
     if (!state.editingResume) return
-    
+
     setState(prev => ({ ...prev, isLoading: true }))
-    
+
     try {
       await resumeApi.updateResume(state.editingResume.id, resumeData)
-      const updatedResumes = await resumeApi.getResumes()
-      
+      const apiResumes = await resumeApi.getResumes()
+      const updatedResumes = Array.isArray(apiResumes)
+        ? apiResumes.map(convertResumeApiToResume)
+        : []
       setState(prev => ({
         ...prev,
         resumes: updatedResumes,
@@ -237,16 +292,17 @@ export default function Demo() {
     }
   }
 
-  // 経歴書削除処理
   const handleDeleteResume = async (resumeId: number) => {
     if (!confirm('この経歴書を削除しますか？')) return
-    
+
     setState(prev => ({ ...prev, isLoading: true }))
-    
+
     try {
       await resumeApi.deleteResume(resumeId)
-      const updatedResumes = await resumeApi.getResumes()
-      
+      const apiResumes = await resumeApi.getResumes()
+      const updatedResumes = Array.isArray(apiResumes)
+        ? apiResumes.map(convertResumeApiToResume)
+        : []
       setState(prev => ({
         ...prev,
         resumes: updatedResumes,
@@ -258,7 +314,6 @@ export default function Demo() {
     }
   }
 
-  // キャンセル処理
   const handleCancel = () => {
     setState(prev => ({
       ...prev,
@@ -267,7 +322,6 @@ export default function Demo() {
     }))
   }
 
-  // セッションがある場合の初期化中はローディング画面
   if (state.isInitializing && state.user) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
@@ -279,7 +333,6 @@ export default function Demo() {
     )
   }
 
-  // ログイン画面
   if (state.currentView === 'login') {
     return (
       <LoginScreen
@@ -289,7 +342,6 @@ export default function Demo() {
     )
   }
 
-  // メイン画面（ナビゲーション付き）
   return (
     <div className="min-h-screen bg-gray-50">
       <Navigation
@@ -297,21 +349,16 @@ export default function Demo() {
         currentView={state.currentView}
         onNavigate={handleNavigate}
       />
-      
+
       <main>
         {state.currentView === 'profile' && state.user && (
           <ProfileScreen
             user={state.user}
-            resumes={state.resumes.map(resume => ({
-              ...resume,
-              skills: resume.skills && Array.isArray(resume.skills.items)
-                ? { items: resume.skills.items }
-                : { items: [] }
-            }))}
+            resumes={state.resumes}
             onCreateNew={() => handleNavigate('create')}
             onEditResume={async (resumeId: number) => {
-              // 編集画面に遷移する際、APIから最新のresumeデータを取得
-              const resume = await resumeApi.getResumeById(resumeId);
+              const apiResume = await resumeApi.getResumeById(resumeId);
+              const resume = convertResumeApiToResume(apiResume);
               setState(prev => ({
                 ...prev,
                 editingResume: resume,
@@ -321,7 +368,7 @@ export default function Demo() {
             onDeleteResume={handleDeleteResume}
           />
         )}
-        
+
         {state.currentView === 'create' && (
           <ResumeFormScreen
             onSave={handleCreateResume}
@@ -332,17 +379,10 @@ export default function Demo() {
             languagesList={state.languagesList}
           />
         )}
-        
+
         {state.currentView === 'edit' && state.editingResume && (
           <ResumeFormScreen
-            resume={state.editingResume ? {
-              ...state.editingResume,
-              skills: state.editingResume.skills?.items
-                ? state.editingResume.skills
-                : Array.isArray(state.editingResume.skills)
-                  ? { items: state.editingResume.skills }
-                  : { items: [] }
-            } : undefined}
+            resume={state.editingResume}
             onSave={handleUpdateResume}
             onCancel={handleCancel}
             isLoading={state.isLoading}

@@ -1,7 +1,6 @@
 import { ObjectType, Field, Int } from '@nestjs/graphql';
 
 @ObjectType()
-@ObjectType()
 export class SkillItem {
   @Field()
   type: string;
@@ -11,12 +10,39 @@ export class SkillItem {
 
   @Field()
   name: string;
+
+  @Field()
+  level: string;
+
+  @Field()
+  years: number;
 }
 
 @ObjectType()
 export class Skills {
   @Field(() => [SkillItem])
   items: SkillItem[];
+}
+
+@ObjectType()
+export class Experience {
+  @Field()
+  company: string;
+
+  @Field()
+  position: string;
+
+  @Field()
+  start_date: string;
+
+  @Field()
+  end_date: string;
+
+  @Field()
+  description: string;
+
+  @Field()
+  portfolio_url: string;
 }
 
 @ObjectType()
@@ -38,6 +64,9 @@ export class Resume {
 
   @Field(() => Skills)
   skills: Skills;
+
+  @Field(() => [Experience])
+  experiences: Experience[];
 
   @Field()
   verified: boolean;

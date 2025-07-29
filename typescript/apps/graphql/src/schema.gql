@@ -23,10 +23,21 @@ type SkillItem {
   type: String!
   master_id: Float!
   name: String!
+  level: String!
+  years: Float!
 }
 
 type Skills {
   items: [SkillItem!]!
+}
+
+type Experience {
+  company: String!
+  position: String!
+  start_date: String!
+  end_date: String!
+  description: String!
+  portfolio_url: String!
 }
 
 type Resume {
@@ -36,6 +47,7 @@ type Resume {
   description: String!
   date: String!
   skills: Skills!
+  experiences: [Experience!]!
   verified: Boolean!
   createdAt: String!
   updatedAt: String!
@@ -87,6 +99,7 @@ input ResumeInput {
   description: String!
   date: String!
   skills: SkillsInput!
+  experiences: [ExperienceInput!]!
 }
 
 input SkillsInput {
@@ -97,4 +110,15 @@ input SkillItemInput {
   type: String!
   master_id: Float!
   name: String!
+  level: String!
+  years: Float!
+}
+
+input ExperienceInput {
+  company: String!
+  position: String!
+  start_date: String!
+  end_date: String!
+  description: String!
+  portfolio_url: String!
 }

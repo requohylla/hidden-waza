@@ -98,7 +98,12 @@ export class ResumeResolver {
   async createResume(
     @Args('input', { type: () => ResumeInput }) input: ResumeInput
   ): Promise<Resume> {
-    return await this.backendApi.createResume(input);
+    // skills, experiencesをGo API DTO形式で渡す
+    return await this.backendApi.createResume({
+      ...input,
+      skills: { items: input.skills.items },
+      experiences: input.experiences,
+    });
   }
 
   @Query(() => Resume, { name: 'resume' })

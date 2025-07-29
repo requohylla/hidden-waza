@@ -21,8 +21,18 @@ export interface FormData {
       type: 'os' | 'tools' | 'languages'
       master_id: number
       name: string
+      level: string
+      years: number
     }[]
   }
+  experiences: {
+    company: string
+    position: string
+    start_date: string
+    end_date: string
+    description: string
+    portfolio_url: string
+  }[]
 }
 
 const SESSION_KEY = 'resume_app_session'
