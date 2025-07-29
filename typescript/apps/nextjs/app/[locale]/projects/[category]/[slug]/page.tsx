@@ -13,9 +13,9 @@ export async function generateStaticParams({ params }: { params: { category: str
 export default async function CategoryProjectPage({
   params,
 }: {
-  params: Promise<{ category: string; slug: string }>;
+  params: { category: string; slug: string };
 }) {
-  const { category, slug } = await params;
+  const { category, slug } = params;
 
   try {
     const Component = (await import(`../../../../../projects/${category}/${slug}/app`)).default;
