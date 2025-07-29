@@ -10,7 +10,8 @@ WORKDIR /app
 # docker レイヤー キャッシュ(DLC)の観点から変更が少ないものに関しては個別にCOPYした方が良い
 COPY package.json package-lock.json ./
 
-RUN npm install --frozen-lockfile
+# 依存関係を厳密にインストール（npm ci推奨）
+RUN npm ci
 
 # ビルドコンテキストに指定したディレクトリをコンテナのワーキングディレクトリにコピー
 # レイヤーキャッシュを活用したいファイルはdockerignoreで除外しないとここで二重コピーになって効率悪い

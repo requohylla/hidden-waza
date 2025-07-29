@@ -17,10 +17,9 @@ COPY go.mod go.sum vendor .
 COPY . .
 
 # ビルド前にmain.goがあるディレクトリに移動
-WORKDIR /app/services/${APP_NAME}
+WORKDIR /app/services/${APP_NAME}/cmd/hidden_waza
 
-# 依存関係の整理・不要な依存関係の追加と削除を行う
-# ビルドする
+# 依存関係の整理・ビルド
 RUN go mod tidy && CGO_ENABLED=0 GOOS=linux go build -o main
 
 #* 実行ステージ *#
@@ -32,6 +31,9 @@ FROM gcr.io/distroless/static:nonroot
 ARG APP_NAME
 
 # ビルドステージから必要なファイルのみコピー
-COPY --from=builder --chown=nonroot:nonroot /app/services/${APP_NAME}/main /
+COPY --from=builder --chown=nonroot:nonroot /app/services/${APP_NAME}/cmd/hidden_waza/main /
+COPY --from=builder --chown=nonroot:nonroot /app/deploy/entrypoint.prod.sh /entrypoint.prod.sh
 
-CMD ["/main"]
+USER nonroot
+
+ENTRYPOINT ["/entrypoint.prod.sh"]

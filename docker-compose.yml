@@ -24,7 +24,7 @@ services:
       context: ./typescript/apps/graphql
       dockerfile: ../../../docker/nestjs/Dockerfile
     ports:
-        - '3000:3000'
+        - '3001:3000'
     volumes:
         - ./typescript/apps/graphql:/app
     tty: true
@@ -37,7 +37,7 @@ services:
       context: ./typescript/apps/nextjs
       dockerfile: ../../../docker/nextjs/Dockerfile
     ports:
-      - '3001:3000'
+      - '3000:3000'
     volumes:
       - ./typescript/apps/nextjs:/app
       - /app/node_modules
