@@ -245,6 +245,8 @@ export function ProfileScreen({
                     </div>
                   </div>
                   <div className="flex space-x-2 mt-4 md:mt-0 md:ml-4">
+                    {/* 編集ボタンを一時的にコメントアウト */}
+                    {/*
                     <Button
                       variant="outline"
                       size="sm"
@@ -252,6 +254,7 @@ export function ProfileScreen({
                     >
                       編集
                     </Button>
+                    */}
                     <Button
                       variant="outline"
                       size="sm"
