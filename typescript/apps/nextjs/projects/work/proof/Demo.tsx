@@ -238,7 +238,7 @@ export default function Demo() {
     setState(prev => ({ ...prev, isLoading: true, successMessage: '' }))
     try {
       await resumeApi.createResume(resumeData)
-      const apiResumes = await resumeApi.getResumes()
+      const apiResumes = await resumeApi.getResumes(state.user?.id)
       const updatedResumes = Array.isArray(apiResumes)
         ? apiResumes.map(convertResumeApiToResume)
         : []
@@ -274,7 +274,7 @@ export default function Demo() {
 
     try {
       await resumeApi.updateResume(state.editingResume.id, resumeData)
-      const apiResumes = await resumeApi.getResumes()
+      const apiResumes = await resumeApi.getResumes(state.user?.id)
       const updatedResumes = Array.isArray(apiResumes)
         ? apiResumes.map(convertResumeApiToResume)
         : []
@@ -300,7 +300,7 @@ export default function Demo() {
 
     try {
       await resumeApi.deleteResume(resumeId)
-      const apiResumes = await resumeApi.getResumes()
+      const apiResumes = await resumeApi.getResumes(state.user?.id)
       const updatedResumes = Array.isArray(apiResumes)
         ? apiResumes.map(convertResumeApiToResume)
         : []
