@@ -25,6 +25,29 @@ docker-compose -f docker-compose.prod.yml down
 ## tips
 
 ### 容量が足りなくてエラーが出る場合
+
+#### 調査コマンド
+
+```
+sudo du -x -h / | sort -r -h | head -10
+```
+
+```
+docker system df
+```
+
+```
+df -h
+```
+
+#### デーモンストップ
+- これしないと削除できないファイルある
+```
+sudo systemctl stop docker
+```
+
+#### 削除コマンド
+
 ```
 docker system prune -a --volumes -f
 ```
