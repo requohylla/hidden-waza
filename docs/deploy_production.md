@@ -5,6 +5,7 @@
   - 例: `cp .env.production.sample .env.production`
 
 ## 2. 本番用イメージのビルド
+- docker-composeのversionが古いと使えないので注意
 ```
 docker-compose -f docker-compose.prod.yml --env-file .env.production build
 ```
