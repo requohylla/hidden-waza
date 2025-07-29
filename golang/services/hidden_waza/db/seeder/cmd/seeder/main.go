@@ -13,13 +13,13 @@ import (
 )
 
 const (
-	userCount       = 10000
-	resumeCount     = 10000
-	languageCount   = 10000
-	toolCount       = 10000
-	osCount         = 10000
-	skillCount      = 10000
-	experienceCount = 10000
+	userCount       = 1000
+	resumeCount     = 1000
+	languageCount   = 1000
+	toolCount       = 1000
+	osCount         = 1000
+	skillCount      = 1000
+	experienceCount = 1000
 	bulkSize        = 500 // 1回のINSERT件数上限
 )
 

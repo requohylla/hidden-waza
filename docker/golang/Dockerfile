@@ -1,4 +1,13 @@
-#* ビルドステージ *#
+#* gooseビルドステージ（分離してメモリ使用量を削減） *#
+FROM golang:1.23.6-alpine AS goose-builder
+
+# 必要なパッケージをインストール
+RUN apk add --no-cache git ca-certificates
+
+# gooseのみをビルド
+RUN go install github.com/pressly/goose/v3/cmd/goose@latest
+
+#* アプリケーションビルドステージ *#
 
 # イメージとバージョンの指定。latestにすると予期しないバグが発生するので注意
 # alpineベースでディスクスペース使用量を削減
@@ -18,10 +27,8 @@ WORKDIR /app
 COPY go.mod go.sum ./
 
 # 依存関係のダウンロード（ソースコードコピー前に実行でキャッシュ効率向上）
-RUN go mod download
-
-# gooseのインストール（依存関係ダウンロード後に実行）
-RUN go install github.com/pressly/goose/v3/cmd/goose@latest
+RUN go mod download && \
+    rm -rf /go/pkg/mod/cache
 
 # キャッシュの最適化のためにソースコードは別でコピー
 # レキャッシュを活用したいファイルはdockerignoreで除外しないとここで二重コピーになって効率悪い
@@ -57,7 +64,7 @@ ARG APP_NAME
 
 # ビルドステージから必要なファイルのみコピー
 COPY --from=builder --chown=nonroot:nonroot /app/services/${APP_NAME}/cmd/hidden_waza/main /
-COPY --from=builder --chown=nonroot:nonroot /go/bin/goose /goose
+COPY --from=goose-builder --chown=nonroot:nonroot /go/bin/goose /goose
 COPY --from=builder --chown=nonroot:nonroot /app/services/${APP_NAME}/db/seeder/cmd/seeder/seeder /seeder
 COPY --from=builder --chown=nonroot:nonroot /app/services/${APP_NAME}/db/migrations /migrations
 COPY --from=builder --chown=nonroot:nonroot --chmod=755 /app/deploy/entrypoint.prod.sh /entrypoint.prod.sh
