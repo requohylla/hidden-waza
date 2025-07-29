@@ -46,6 +46,7 @@ type Resume struct {
 	Experiences []Experience `json:"experiences"`
 	CreatedAt   time.Time    `json:"created_at"`
 	UpdatedAt   time.Time    `json:"updated_at"`
+	Verified    bool         `json:"verified"`
 }
 
 /// 職務経歴書の業務的バリデーション

@@ -57,45 +57,39 @@ interface AppState {
   editingResume: Resume | null
   isLoading: boolean
   isInitializing: boolean
+  successMessage: string
 }
 
-// より厳密な空配列セット
 function convertResumeApiToResume(apiResume: any): Resume {
-  let skillsArray: any[] = [];
-  if (apiResume && apiResume.skills) {
-    if (Array.isArray(apiResume.skills.items)) {
-      skillsArray = apiResume.skills.items;
-    } else if (Array.isArray(apiResume.skills)) {
-      skillsArray = apiResume.skills;
-    }
-  }
-  let experiencesArray: any[] = [];
-  if (apiResume && Array.isArray(apiResume.experiences)) {
-    experiencesArray = apiResume.experiences;
-  }
+  const skillsArray =
+    Array.isArray(apiResume?.skills?.items)
+      ? apiResume.skills.items
+      : Array.isArray(apiResume?.skills)
+        ? apiResume.skills
+        : [];
+  const experiencesArray =
+    Array.isArray(apiResume?.experiences)
+      ? apiResume.experiences
+      : [];
   return {
     ...apiResume,
     id: typeof apiResume.id === 'number' ? apiResume.id : 0,
     skills: {
-      items: Array.isArray(skillsArray)
-        ? skillsArray.map((item: any) => ({
-            ...item,
-            level: item?.level ?? '',
-            years: item?.years ?? 0
-          }))
-        : []
+      items: skillsArray.map((item: any) => ({
+        ...item,
+        level: item?.level ?? '',
+        years: item?.years ?? 0
+      }))
     },
-    experiences: Array.isArray(experiencesArray)
-      ? experiencesArray.map((exp: any) => ({
-          ...exp,
-          company: exp?.company ?? '',
-          position: exp?.position ?? '',
-          start_date: exp?.start_date ?? '',
-          end_date: exp?.end_date ?? '',
-          description: exp?.description ?? '',
-          portfolio_url: exp?.portfolio_url ?? ''
-        }))
-      : [],
+    experiences: experiencesArray.map((exp: any) => ({
+      ...exp,
+      company: exp?.company ?? '',
+      position: exp?.position ?? '',
+      start_date: exp?.start_date ?? '',
+      end_date: exp?.end_date ?? '',
+      description: exp?.description ?? '',
+      portfolio_url: exp?.portfolio_url ?? ''
+    })),
     verified: apiResume.verified ?? false,
     createdAt: apiResume.createdAt ?? apiResume.created_at ?? '',
     updatedAt: apiResume.updatedAt ?? apiResume.updated_at ?? ''
@@ -115,7 +109,8 @@ export default function Demo() {
     languagesList: [],
     editingResume: null,
     isLoading: false,
-    isInitializing: !!initialSession
+    isInitializing: !!initialSession,
+    successMessage: ''
   })
 
   useEffect(() => {
@@ -224,23 +219,25 @@ export default function Demo() {
         languagesList: [],
         editingResume: null,
         isLoading: false,
-        isInitializing: false
+        isInitializing: false,
+        successMessage: ''
       })
     } else {
       SessionManager.extendSession()
       setState(prev => ({
         ...prev,
         currentView: view,
-        editingResume: null
+        editingResume: null,
+        successMessage: ''
       }))
     }
   }
 
+  // 保存成功時に必ずisLoading解除・画面遷移・メッセージ表示
   const handleCreateResume = async (resumeData: Omit<Resume, 'id' | 'userId' | 'verified' | 'createdAt' | 'updatedAt'>) => {
-    setState(prev => ({ ...prev, isLoading: true }))
-
+    setState(prev => ({ ...prev, isLoading: true, successMessage: '' }))
     try {
-      const newResume = await resumeApi.createResume(resumeData)
+      await resumeApi.createResume(resumeData)
       const apiResumes = await resumeApi.getResumes()
       const updatedResumes = Array.isArray(apiResumes)
         ? apiResumes.map(convertResumeApiToResume)
@@ -249,8 +246,10 @@ export default function Demo() {
         ...prev,
         resumes: updatedResumes,
         currentView: 'profile',
-        isLoading: false
+        isLoading: false,
+        successMessage: '保存に成功しました！'
       }))
+      return;
     } catch (error) {
       setState(prev => ({ ...prev, isLoading: false }))
       throw error
@@ -271,7 +270,7 @@ export default function Demo() {
   const handleUpdateResume = async (resumeData: Omit<Resume, 'id' | 'userId' | 'verified' | 'createdAt' | 'updatedAt'>) => {
     if (!state.editingResume) return
 
-    setState(prev => ({ ...prev, isLoading: true }))
+    setState(prev => ({ ...prev, isLoading: true, successMessage: '' }))
 
     try {
       await resumeApi.updateResume(state.editingResume.id, resumeData)
@@ -282,10 +281,12 @@ export default function Demo() {
       setState(prev => ({
         ...prev,
         resumes: updatedResumes,
-        currentView: 'profile',
         editingResume: null,
-        isLoading: false
+        currentView: 'profile',
+        isLoading: false,
+        successMessage: '更新に成功しました！'
       }))
+      return;
     } catch (error) {
       setState(prev => ({ ...prev, isLoading: false }))
       throw error
@@ -295,7 +296,7 @@ export default function Demo() {
   const handleDeleteResume = async (resumeId: number) => {
     if (!confirm('この経歴書を削除しますか？')) return
 
-    setState(prev => ({ ...prev, isLoading: true }))
+    setState(prev => ({ ...prev, isLoading: true, successMessage: '' }))
 
     try {
       await resumeApi.deleteResume(resumeId)
@@ -306,7 +307,8 @@ export default function Demo() {
       setState(prev => ({
         ...prev,
         resumes: updatedResumes,
-        isLoading: false
+        isLoading: false,
+        successMessage: '削除に成功しました！'
       }))
     } catch (error) {
       setState(prev => ({ ...prev, isLoading: false }))
@@ -318,7 +320,8 @@ export default function Demo() {
     setState(prev => ({
       ...prev,
       currentView: 'profile',
-      editingResume: null
+      editingResume: null,
+      successMessage: ''
     }))
   }
 
@@ -351,6 +354,14 @@ export default function Demo() {
       />
 
       <main>
+        {state.successMessage && (
+          <div className="max-w-2xl mx-auto mt-6 mb-2 px-4">
+            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md text-sm text-center">
+              {state.successMessage}
+            </div>
+          </div>
+        )}
+
         {state.currentView === 'profile' && state.user && (
           <ProfileScreen
             user={state.user}

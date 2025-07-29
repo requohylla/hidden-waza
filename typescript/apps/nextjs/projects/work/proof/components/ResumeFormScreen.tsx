@@ -116,6 +116,7 @@ export function ResumeFormScreen({
 
   const [formData, setFormData] = useState<FormData>(getSavedFormData)
   const [errors, setErrors] = useState<{ [key: string]: string }>({})
+  const [successMessage, setSuccessMessage] = useState<string>('')
   const initialActiveTab = (() => {
     if (resume && resume.skills && Array.isArray(resume.skills.items) && resume.skills.items.length > 0) {
       return resume.skills.items[0].type as SkillCategory;
@@ -192,6 +193,7 @@ export function ResumeFormScreen({
     try {
       await onSave(formData)
       SessionManager.clearFormData(formType)
+      setSuccessMessage('保存に成功しました！')
     } catch (error) {
       setErrors({ general: '保存に失敗しました。もう一度お試しください。' })
     }
@@ -272,6 +274,11 @@ export function ResumeFormScreen({
           {errors.general && (
             <div className="bg-red-50 border border-red-200 text-red-600 px-4 py-3 rounded-md text-sm">
               {errors.general}
+            </div>
+          )}
+          {successMessage && (
+            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md text-sm">
+              {successMessage}
             </div>
           )}
 

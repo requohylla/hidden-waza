@@ -147,27 +147,10 @@ export const resumeApi = {
   async createResume(resumeData: Omit<Resume, 'id' | 'userId' | 'verified' | 'createdAt' | 'updatedAt'>) {
     const mutation = gql`
       mutation CreateResume($input: ResumeInput!) {
-        createResume(input: $input) {
-          id
-          userId
-          title
-          description
-          date
-          skills {
-            items {
-              type
-              master_id
-              name
-            }
-          }
-          verified
-          createdAt
-          updatedAt
-        }
+        createResume(input: $input)
       }
     `;
-    const data = await client.request<{ createResume: Resume }>(mutation, { input: resumeData });
-    return data.createResume;
+    await client.request(mutation, { input: resumeData });
   },
   async updateResume(id: number, resumeData: Omit<Resume, 'id' | 'userId' | 'verified' | 'createdAt' | 'updatedAt'>) {
     // 仮実装: BFFにupdateResume mutationが必要

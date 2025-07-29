@@ -16,6 +16,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"time"
 
 	"github.com/labstack/echo/v4"
 	"github.com/requohylla/hidden-waza/services/hidden_waza/api/v1/dto"
@@ -49,7 +50,23 @@ func (h *ResumeHandler) CreateResume(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "DB error", http.StatusInternalServerError)
 		return
 	}
+
+	// 登録したResumeをDTOに変換して返す
+	resumeDTO := dto.ResumeDTO{
+		ID:          resume.ID,
+		UserID:      resume.UserID,
+		Title:       resume.Title,
+		Summary:     resume.Summary,
+		Skills:      convertDomainSkillsToDTO(resume.Skills),
+		Experiences: convertDomainExperiencesToDTO(resume.Experiences),
+		CreatedAt:   resume.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:   resume.UpdatedAt.Format(time.RFC3339),
+		Verified:    resume.Verified,
+	}
+
+	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusCreated)
+	json.NewEncoder(w).Encode(resumeDTO)
 }
 
 // SkillDTOからdomain.Skillへの変換
@@ -98,6 +115,22 @@ func convertExperienceDTOs(dtos []dto.ExperienceDTO) []domain.Experience {
 	return exps
 }
 
+// domain.Experience → dto.ExperienceDTO変換
+func convertDomainExperiencesToDTO(exps []domain.Experience) []dto.ExperienceDTO {
+	var dtos []dto.ExperienceDTO
+	for _, e := range exps {
+		dtos = append(dtos, dto.ExperienceDTO{
+			Company:      e.Company,
+			Position:     e.Position,
+			StartDate:    e.StartDate,
+			EndDate:      e.EndDate,
+			Description:  e.Description,
+			PortfolioURL: e.PortfolioURL,
+		})
+	}
+	return dtos
+}
+
 func (h *ResumeHandler) GetResumes(w http.ResponseWriter, r *http.Request) {
 	resumes, err := h.repo.GetAll()
 	if err != nil {
@@ -123,7 +156,10 @@ func (h *ResumeHandler) GetResumeByID(c echo.Context) error {
 		Title:       resume.Title,
 		Summary:     resume.Summary,
 		Skills:      convertDomainSkillsToDTO(resume.Skills),
-		Experiences: []dto.ExperienceDTO{}, // 必要なら変換
+		Experiences: convertDomainExperiencesToDTO(resume.Experiences),
+		CreatedAt:   resume.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:   resume.UpdatedAt.Format(time.RFC3339),
+		Verified:    resume.Verified,
 	}
 	return c.JSON(http.StatusOK, dtoResume)
 }

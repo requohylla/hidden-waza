@@ -94,16 +94,17 @@ export class ResumeResolver {
     });
   }
 
-  @Mutation(() => Resume)
+  // 修正: 成功時はBoolean型（true）だけ返す
+  @Mutation(() => Boolean)
   async createResume(
     @Args('input', { type: () => ResumeInput }) input: ResumeInput
-  ): Promise<Resume> {
-    // skills, experiencesをGo API DTO形式で渡す
-    return await this.backendApi.createResume({
+  ): Promise<boolean> {
+    await this.backendApi.createResume({
       ...input,
       skills: { items: input.skills.items },
       experiences: input.experiences,
     });
+    return true;
   }
 
   @Query(() => Resume, { name: 'resume' })

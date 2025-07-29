@@ -36,4 +36,7 @@ type ResumeDTO struct {
 	Summary     string          `json:"summary"`
 	Skills      []SkillDTO      `json:"skills"`
 	Experiences []ExperienceDTO `json:"experiences"`
+	CreatedAt   string          `json:"created_at"`
+	UpdatedAt   string          `json:"updated_at"`
+	Verified    bool            `json:"verified"`
 }
