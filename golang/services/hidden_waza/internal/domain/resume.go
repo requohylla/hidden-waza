@@ -42,8 +42,8 @@ type Resume struct {
 	UserID      uint         `json:"user_id" gorm:"column:user_id"`
 	Title       string       `json:"title"`
 	Summary     string       `json:"summary"`
-	Skills      []Skill      `json:"skills"`
-	Experiences []Experience `json:"experiences"`
+	Skills      []Skill      `json:"skills" gorm:"foreignKey:ResumeID;constraint:OnDelete:CASCADE"`
+	Experiences []Experience `json:"experiences" gorm:"foreignKey:ResumeID;constraint:OnDelete:CASCADE"`
 	CreatedAt   time.Time    `json:"created_at"`
 	UpdatedAt   time.Time    `json:"updated_at"`
 	Verified    bool         `json:"verified"`

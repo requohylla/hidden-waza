@@ -69,6 +69,47 @@ func (h *ResumeHandler) CreateResume(w http.ResponseWriter, r *http.Request) {
 	json.NewEncoder(w).Encode(resumeDTO)
 }
 
+func (h *ResumeHandler) UpdateResume(c echo.Context) error {
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid id"})
+	}
+
+	var req dto.ResumeDTO
+	if err := c.Bind(&req); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid request"})
+	}
+
+	// DTO→ドメイン
+	resume := domain.Resume{
+		ID:          uint(id),
+		UserID:      req.UserID,
+		Title:       req.Title,
+		Summary:     req.Summary,
+		Skills:      convertSkillDTOs(req.Skills),
+		Experiences: convertExperienceDTOs(req.Experiences),
+	}
+
+	if err := h.repo.Update(&resume); err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "DB error"})
+	}
+
+	// 更新後のDTO返却
+	resumeDTO := dto.ResumeDTO{
+		ID:          resume.ID,
+		UserID:      resume.UserID,
+		Title:       resume.Title,
+		Summary:     resume.Summary,
+		Skills:      convertDomainSkillsToDTO(resume.Skills),
+		Experiences: convertDomainExperiencesToDTO(resume.Experiences),
+		CreatedAt:   resume.CreatedAt.Format(time.RFC3339),
+		UpdatedAt:   resume.UpdatedAt.Format(time.RFC3339),
+		Verified:    resume.Verified,
+	}
+	return c.JSON(http.StatusOK, resumeDTO)
+}
+
 // SkillDTOからdomain.Skillへの変換
 // DTOとドメインモデルの構造やフィールド名が異なる場合もここで吸収可能
 func convertSkillDTOs(dtos []dto.SkillDTO) []domain.Skill {

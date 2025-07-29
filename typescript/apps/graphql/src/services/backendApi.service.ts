@@ -95,6 +95,18 @@ return res.data.map((item: any) => ({
       updatedAt: data.updatedAt ?? "",
     };
   }
+  async updateResume(id: number, resume: any) {
+    // Go APIのDTO形式に合わせてPUT
+    const payload = {
+      title: resume.title,
+      summary: resume.description,
+      user_id: resume.userId ?? resume.user_id ?? 1,
+      skills: resume.skills?.items ?? [],
+      experiences: resume.experiences ?? [],
+    };
+    const res = await axios.put(`${BASE_URL}/resume/${id}`, payload);
+    return res.data;
+  }
 }
 
 // --- 追加: id→name変換用のマスターデータを保持するグローバル変数 ---

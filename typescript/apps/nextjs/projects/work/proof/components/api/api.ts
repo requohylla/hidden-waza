@@ -153,8 +153,12 @@ export const resumeApi = {
     await client.request(mutation, { input: resumeData });
   },
   async updateResume(id: number, resumeData: Omit<Resume, 'id' | 'userId' | 'verified' | 'createdAt' | 'updatedAt'>) {
-    // 仮実装: BFFにupdateResume mutationが必要
-    return {} as Resume;
+    const mutation = gql`
+      mutation UpdateResume($id: Int!, $input: ResumeInput!) {
+        updateResume(id: $id, input: $input)
+      }
+    `;
+    await client.request(mutation, { id, input: resumeData });
   },
   async deleteResume(id: number) {
     // 仮実装: BFFにdeleteResume mutationが必要

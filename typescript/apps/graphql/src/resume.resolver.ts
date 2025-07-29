@@ -158,4 +158,16 @@ export class ResumeResolver {
       skills: { items }
     };
   }
+  @Mutation(() => Boolean)
+  async updateResume(
+    @Args('id', { type: () => Int }) id: number,
+    @Args('input', { type: () => ResumeInput }) input: ResumeInput
+  ): Promise<boolean> {
+    await this.backendApi.updateResume(id, {
+      ...input,
+      skills: { items: input.skills.items },
+      experiences: input.experiences,
+    });
+    return true;
+  }
 }

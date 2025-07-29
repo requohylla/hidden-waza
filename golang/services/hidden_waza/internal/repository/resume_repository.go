@@ -76,3 +76,48 @@ func (r *ResumeRepository) AttachSkills(resumes []domain.Resume) {
 		resumes[i].Skills = skills
 	}
 }
+
+// Updateは、指定IDのResumeを更新します（Skills/Experiencesも全置換）
+func (r *ResumeRepository) Update(resume *domain.Resume) error {
+	tx := r.db.Begin()
+
+	// 本体更新
+	if err := tx.Model(&domain.Resume{}).Where("id = ?", resume.ID).Updates(map[string]interface{}{
+		"title":      resume.Title,
+		"summary":    resume.Summary,
+		"user_id":    resume.UserID,
+		"verified":   resume.Verified,
+		"updated_at": tx.NowFunc(),
+	}).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	// Skills全削除→再登録
+	if err := tx.Where("resume_id = ?", resume.ID).Delete(&domain.Skill{}).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	for i := range resume.Skills {
+		resume.Skills[i].ResumeID = resume.ID
+		if err := tx.Create(&resume.Skills[i]).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	// Experiences全削除→再登録
+	if err := tx.Where("resume_id = ?", resume.ID).Delete(&domain.Experience{}).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	for i := range resume.Experiences {
+		resume.Experiences[i].ResumeID = resume.ID
+		if err := tx.Create(&resume.Experiences[i]).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	return tx.Commit().Error
+}
