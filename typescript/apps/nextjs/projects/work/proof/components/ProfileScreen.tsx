@@ -72,7 +72,7 @@ export function ProfileScreen({
       if (now - lastManualTimeRef.current < AUTO_SLIDE_DELAY) return;
       setStatIndex(idx => (idx + 1) % stats.length);
     };
-    statTimerRef.current = setInterval(tick, 1000);
+    statTimerRef.current = setInterval(tick, 2000);
     return () => {
       statTimerRef.current && clearInterval(statTimerRef.current);
     };
@@ -169,20 +169,20 @@ export function ProfileScreen({
             </span>
           </div>
           {/* 新規作成ボタン＋検索欄 */}
-          <div className="flex flex-col md:flex-row md:items-center md:gap-4 gap-2">
-            <Button onClick={onCreateNew} className="flex items-center w-full md:w-auto">
+          <div className="flex flex-col md:flex-row md:items-center md:gap-4 gap-2 min-w-0 w-full flex-wrap">
+            <Button onClick={onCreateNew} className="flex items-center w-full md:w-auto min-w-0 text-xs px-1 py-1 break-words overflow-hidden">
               <PlusIcon className="h-4 w-4 mr-2" />
               新規経歴書作成
             </Button>
             <input
               type="text"
               placeholder="タイトルで絞り込み"
-              className="border rounded px-2 py-1 text-sm w-full md:w-auto"
+              className="border rounded px-1 py-1 text-xs w-full min-w-0 break-words overflow-hidden"
               value={filterTitle}
               onChange={e => setFilterTitle(e.target.value)}
             />
             <select
-              className="border rounded px-2 py-1 text-sm w-full md:w-auto"
+              className="border rounded px-1 py-1 text-xs w-full min-w-0 break-words overflow-hidden"
               value={filterVerified}
               onChange={e => setFilterVerified(e.target.value)}
             >
