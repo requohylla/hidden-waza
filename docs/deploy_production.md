@@ -21,3 +21,10 @@ docker-compose -f docker-compose.prod.yml --env-file .env.production up -d
 ```
 docker-compose -f docker-compose.prod.yml down
 ```
+
+## tips
+
+### 容量が足りなくてエラーが出る場合
+```
+docker system prune -a --volumes -f
+```
