@@ -22,6 +22,13 @@ WORKDIR /app/services/${APP_NAME}/cmd/hidden_waza
 # 依存関係の整理・ビルド
 RUN go mod tidy && CGO_ENABLED=0 GOOS=linux go build -o main
 
+# gooseのインストール
+RUN go install github.com/pressly/goose/v3/cmd/goose@latest
+
+# seederのビルド
+WORKDIR /app/services/${APP_NAME}/db/seeder/cmd/seeder
+RUN CGO_ENABLED=0 GOOS=linux go build -o seeder
+
 #* 実行ステージ *#
 # Distrolessにはアプリケーションの実行に必要な依存しか含まれていないので軽量でセキュア(Shell、apt、cd等が使えない)
 # そのような性質からワンバイナリで動くGolangとは相性が良い(他の言語ではslimとかbusybox使ったほうがいいかも)
@@ -32,7 +39,10 @@ ARG APP_NAME
 
 # ビルドステージから必要なファイルのみコピー
 COPY --from=builder --chown=nonroot:nonroot /app/services/${APP_NAME}/cmd/hidden_waza/main /
-COPY --from=builder --chown=nonroot:nonroot /app/deploy/entrypoint.prod.sh /entrypoint.prod.sh
+COPY --from=builder --chown=nonroot:nonroot /go/bin/goose /goose
+COPY --from=builder --chown=nonroot:nonroot /app/services/${APP_NAME}/db/seeder/cmd/seeder/seeder /seeder
+COPY --from=builder --chown=nonroot:nonroot /app/services/${APP_NAME}/db/migrations /migrations
+COPY --from=builder --chown=nonroot:nonroot --chmod=755 /app/deploy/entrypoint.prod.sh /entrypoint.prod.sh
 
 USER nonroot
 
