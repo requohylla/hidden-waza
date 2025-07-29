@@ -121,3 +121,25 @@ func (r *ResumeRepository) Update(resume *domain.Resume) error {
 
 	return tx.Commit().Error
 }
+
+// Deleteは、指定IDのResumeを削除します（Skills/Experiencesも含めて削除）
+func (r *ResumeRepository) Delete(id uint) error {
+	tx := r.db.Begin()
+
+	// Skills削除
+	if err := tx.Where("resume_id = ?", id).Delete(&domain.Skill{}).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	// Experiences削除
+	if err := tx.Where("resume_id = ?", id).Delete(&domain.Experience{}).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	// Resume本体削除
+	if err := tx.Delete(&domain.Resume{}, id).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+	return tx.Commit().Error
+}

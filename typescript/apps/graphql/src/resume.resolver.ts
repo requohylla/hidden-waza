@@ -170,4 +170,12 @@ export class ResumeResolver {
     });
     return true;
   }
+
+  @Mutation(() => Boolean)
+  async deleteResume(
+    @Args('id', { type: () => Int }) id: number
+  ): Promise<boolean> {
+    await this.backendApi.deleteResume(id);
+    return true;
+  }
 }

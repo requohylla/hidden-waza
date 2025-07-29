@@ -59,6 +59,7 @@ func main() {
 	e.GET("/api/v1/resume/:id", h.GetResumeByID)
 	e.GET("/api/v1/resume/user/:user_id", h.GetResumesByUserID)
 	e.PUT("/api/v1/resume/:id", h.UpdateResume)
+	e.DELETE("/api/v1/resume/:id", h.DeleteResume)
 
 	e.POST("/api/v1/signup", userHandler.Register)
 	e.POST("/api/v1/login", userHandler.Login)

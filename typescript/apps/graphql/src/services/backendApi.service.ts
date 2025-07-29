@@ -107,6 +107,11 @@ return res.data.map((item: any) => ({
     const res = await axios.put(`${BASE_URL}/resume/${id}`, payload);
     return res.data;
   }
+  async deleteResume(id: number) {
+    const url = `${BASE_URL}/resume/${id}`;
+    await axios.delete(url);
+    return true;
+  }
 }
 
 // --- 追加: id→name変換用のマスターデータを保持するグローバル変数 ---

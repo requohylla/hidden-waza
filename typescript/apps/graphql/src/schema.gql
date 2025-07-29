@@ -82,6 +82,7 @@ type Mutation {
   register(input: RegisterInput!): RegisterResponse!
   createResume(input: ResumeInput!): Boolean!
   updateResume(id: Int!, input: ResumeInput!): Boolean!
+  deleteResume(id: Int!): Boolean!
 }
 
 input LoginInput {

@@ -217,3 +217,16 @@ func (h *ResumeHandler) GetResumesByUserID(c echo.Context) error {
 	}
 	return c.JSON(http.StatusOK, resumes)
 }
+
+// DELETE /resumes/:id
+func (h *ResumeHandler) DeleteResume(c echo.Context) error {
+	idStr := c.Param("id")
+	id, err := strconv.Atoi(idStr)
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"error": "invalid id"})
+	}
+	if err := h.repo.Delete(uint(id)); err != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"error": "DB error"})
+	}
+	return c.NoContent(http.StatusNoContent)
+}

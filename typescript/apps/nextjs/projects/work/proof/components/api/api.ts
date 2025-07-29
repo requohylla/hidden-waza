@@ -161,7 +161,12 @@ export const resumeApi = {
     await client.request(mutation, { id, input: resumeData });
   },
   async deleteResume(id: number) {
-    // 仮実装: BFFにdeleteResume mutationが必要
+    const mutation = gql`
+      mutation DeleteResume($id: Int!) {
+        deleteResume(id: $id)
+      }
+    `;
+    await client.request(mutation, { id });
     return;
   }
 };
