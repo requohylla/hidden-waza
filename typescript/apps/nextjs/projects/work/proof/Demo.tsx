@@ -5,6 +5,7 @@ import { LoginScreen } from './components/LoginScreen'
 import { ProfileScreen } from './components/ProfileScreen'
 import { ResumeFormScreen } from './components/ResumeFormScreen'
 import { Navigation } from './components/ui/Navigation'
+import { SuccessToast } from './components/ui/SuccessToast'
 import { authApi, resumeApi, skillApi, User } from './components/api/api'
 import { getSkills } from './components/data/skills'
 import { SessionManager } from './components/utils/sessionManager'
@@ -354,13 +355,10 @@ export default function Demo() {
       />
 
       <main>
-        {state.successMessage && (
-          <div className="max-w-2xl mx-auto mt-6 mb-2 px-4">
-            <div className="bg-green-50 border border-green-200 text-green-700 px-4 py-3 rounded-md text-sm text-center">
-              {state.successMessage}
-            </div>
-          </div>
-        )}
+        <SuccessToast
+          message={state.successMessage}
+          onClose={() => setState(prev => ({ ...prev, successMessage: '' }))}
+        />
 
         {state.currentView === 'profile' && state.user && (
           <ProfileScreen
