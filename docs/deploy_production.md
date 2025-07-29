@@ -51,3 +51,9 @@ sudo systemctl stop docker
 ```
 docker system prune -a --volumes -f
 ```
+
+##### EC2の容量を増やす
+- 参考サイト
+- 20GBから30GBまでは増やせるっぽい(デフォルト8GB)
+- 20GBまでは検証済み
+https://skmkuma.com/%EF%BC%9Caws%E2%91%A2%EF%BC%9E%E7%84%A1%E6%96%99%E6%9E%A0%E3%81%A7ec2%E3%81%AE%E3%83%A1%E3%83%A2%E3%83%AA%E5%AE%B9%E9%87%8F%E3%82%92%E5%A2%97%E3%82%84%E3%81%97%E3%81%A6%E3%81%BF%E3%82%8B/
