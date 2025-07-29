@@ -6,9 +6,9 @@ import path from 'path';
 // context.params を await してから使う。
 export async function GET(
   _request: Request,
-  context: { params: { category: string; slug: string } }
+  context: { params: Promise<{ category: string; slug: string }> }
 ) {
-  // params が Promise の場合もあるので await 
+  // params が Promise の場合もあるので await
   const { category, slug } = await context.params;
 
   let filePath: string;

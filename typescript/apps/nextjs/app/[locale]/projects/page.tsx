@@ -2,9 +2,9 @@ import { ProjectCardList } from '../../../components/ui/ProjectCardList'
 import { getProjects } from '../../../data/projects'
 
 interface Props {
-  params: {
+  params: Promise<{
     locale: string
-  }
+  }>
 }
 
 export default async function ProjectsIndex({ params }: Props) {

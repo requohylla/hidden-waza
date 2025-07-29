@@ -1,11 +1,14 @@
 import { getLocalizedJsonValue } from "@/lib/getLocalizedJsonValue"
 
-import { PageProps } from "next";
 
 import { notFound } from 'next/navigation'
 
-export default async function CategoryIndexPage({ params }: PageProps) {
-  const { locale, category } = params as { locale: string; category: string }
+export default async function CategoryIndexPage({
+  params,
+}: {
+  params: Promise<{ locale: string; category: string }>;
+}) {
+  const { locale, category } = await params;
   const categoryDesc = await getLocalizedJsonValue(
     "data/projects/categoryDescriptions.json",
     category,

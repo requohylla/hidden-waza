@@ -11,24 +11,31 @@ import {
 import { useParams } from 'next/navigation';
 import { Canvas, useFrame, useLoader, useThree } from '@react-three/fiber';
 import { OrbitControls } from '@react-three/drei';
-import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { VRMLoaderPlugin, VRM } from '@pixiv/three-vrm';
-import { Euler, Quaternion, Vector3, Camera, Matrix4 } from 'three';
+import { Euler, Quaternion, Vector3, Camera, Matrix4, Group } from 'three';
+import * as THREE from 'three';
 
 // --- Expression Controller Component ---
 function ExpressionController({ vrm }: { vrm: VRM }) {
-  const proxy = vrm.blendShapeProxy;
-  if (!proxy || !proxy.expressions) return null;
+  const expressionManager = vrm.expressionManager;
+  if (!expressionManager) return null;
 
-  const names = Object.keys(proxy.expressions);
+  const expressions = expressionManager.expressionMap;
+  const names = Object.keys(expressions);
   const [values, setValues] = useState<Record<string, number>>(
     names.reduce((acc, name) => ({ ...acc, [name]: 0 }), {})
   );
 
   useEffect(() => {
-    names.forEach((name) => proxy.setValue(name, values[name]));
-    proxy.applyValues();
-  }, [values]);
+    names.forEach((name) => {
+      const expression = expressions[name];
+      if (expression) {
+        expression.weight = values[name];
+      }
+    });
+    expressionManager.update();
+  }, [values, expressions, expressionManager]);
 
   return (
     <div className="absolute top-4 left-4 p-4 bg-white bg-opacity-80 rounded shadow space-y-2 max-h-64 overflow-auto z-20">
@@ -63,7 +70,7 @@ function ModelLoader({
   url: string;
   onLoaded: (vrm: VRM) => void;
   position: [number, number, number];
-  modelRef: React.MutableRefObject<THREE.Group | null>;
+  modelRef: React.MutableRefObject<Group | null>;
 }) {
   const gltf = useLoader(
     GLTFLoader,
@@ -74,7 +81,7 @@ function ModelLoader({
 
   useEffect(() => onLoaded(vrm), [vrm]);
 
-  const ref = useRef<THREE.Group>(null);
+  const ref = useRef<Group>(null);
   useEffect(() => {
     modelRef.current = ref.current;
   }, [ref.current]);
@@ -141,7 +148,7 @@ function ShootingGame({
   modelRef,
   camera,
 }: {
-  modelRef: React.MutableRefObject<THREE.Group | null>;
+  modelRef: React.MutableRefObject<Group | null>;
   camera: Camera;
 }) {
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -278,7 +285,7 @@ function ShootingGame({
   useEffect(() => {
     const js = jsRef.current;
     if (!js || !modelRef.current) return;
-    const onDown = (e: PointerEvent) => {
+    const onDown = (e: globalThis.PointerEvent) => {
       js.setPointerCapture(e.pointerId);
       dragging.current = true;
     };
@@ -286,7 +293,7 @@ function ShootingGame({
       dragging.current = false;
       if (knobRef.current) knobRef.current.style.transform = '';
     };
-    const onMove = (e: PointerEvent) => {
+    const onMove = (e: globalThis.PointerEvent) => {
       if (!dragging.current || !modelRef.current) return;
       const r = js.getBoundingClientRect();
       const dx = e.clientX - (r.left + r.width / 2);
@@ -344,7 +351,7 @@ export default function ViewerPage() {
   const [vrmInstance, setVrmInstance] = useState<VRM | null>(null);
   const [waveTrigger, setWaveTrigger] = useState(0);
   const [mode, setMode] = useState<'viewer' | 'shooting'>('viewer');
-  const modelRef = useRef<THREE.Group | null>(null);
+  const modelRef = useRef<Group | null>(null);
   const cameraRef = useRef<Camera>(null!);
   const joystickRef = useRef<HTMLDivElement>(null);
   const knobRef = useRef<HTMLDivElement>(null);
@@ -387,15 +394,18 @@ export default function ViewerPage() {
   useEffect(() => {
     const js = joystickRef.current;
     if (!js) return;
-    const onPointerDown = (e: PointerEvent) => {
-      e.currentTarget.setPointerCapture(e.pointerId);
+    const onPointerDown = (e: globalThis.PointerEvent) => {
+      const target = e.currentTarget as HTMLElement;
+      if (target && 'setPointerCapture' in target) {
+        target.setPointerCapture(e.pointerId);
+      }
       setDragging(true);
     };
     const onPointerUp = () => {
       setDragging(false);
       if (knobRef.current) knobRef.current.style.transform = '';
     };
-    const onPointerMove = (e: PointerEvent) => {
+    const onPointerMove = (e: globalThis.PointerEvent) => {
       if (!dragging || !joystickRef.current || !knobRef.current) return;
       const rect = joystickRef.current.getBoundingClientRect();
       const cx = rect.left + rect.width / 2;
@@ -429,8 +439,8 @@ export default function ViewerPage() {
 
   useEffect(() => {
     if (!vrmInstance) return;
-    const proxy = vrmInstance.blendShapeProxy;
-    if (!proxy) return;
+    const expressionManager = vrmInstance.expressionManager;
+    if (!expressionManager) return;
     navigator.mediaDevices.getUserMedia({ audio: true }).then((stream) => {
       const ctx = new AudioContext();
       const src = ctx.createMediaStreamSource(stream);
@@ -441,8 +451,11 @@ export default function ViewerPage() {
       const loop = () => {
         analyser.getByteFrequencyData(data);
         const level = data.reduce((sum, v) => sum + v, 0) / data.length / 255;
-        proxy.setValue('A', level);
-        proxy.applyValues();
+        const aExpression = expressionManager.expressionMap['A'];
+        if (aExpression) {
+          aExpression.weight = level;
+        }
+        expressionManager.update();
         requestAnimationFrame(loop);
       };
       loop();
@@ -628,7 +641,7 @@ export default function ViewerPage() {
               Wave!
             </button>
 
-            {mode === 'viewer' && vrmInstance && vrmInstance.blendShapeProxy && (
+            {mode === 'viewer' && vrmInstance && vrmInstance.expressionManager && (
               <ExpressionController vrm={vrmInstance} />
             )}
             {mode === 'shooting' && modelRef.current && cameraRef.current && (

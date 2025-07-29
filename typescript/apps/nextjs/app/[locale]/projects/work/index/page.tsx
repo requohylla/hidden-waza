@@ -1,11 +1,11 @@
 import { getLocalizedJsonValue } from "@/lib/getLocalizedJsonValue"
 
 interface Props {
-  params: { locale: string }
+  params: Promise<{ locale: string }>
 }
 
 export default async function WorkIndexPage({ params }: Props) {
-  const { locale } = params
+  const { locale } = await params
   const workDesc = await getLocalizedJsonValue(
     "data/projects/categoryDescriptions.json",
     "work",
