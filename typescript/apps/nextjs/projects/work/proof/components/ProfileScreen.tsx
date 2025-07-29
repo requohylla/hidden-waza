@@ -204,18 +204,18 @@ export function ProfileScreen({
             style={{ minWidth: 0 }}
           >
             {filteredResumes.map((resume) => (
-              <div key={resume.id} className="p-6 hover:bg-gray-50 transition-colors">
-                <div className="flex flex-col md:flex-row items-start md:items-center justify-between">
-                  <div className="flex-1 w-full">
+              <div key={resume.id} className="p-6 hover:bg-gray-50 transition-colors w-full min-w-0">
+                <div className="flex flex-col md:flex-row items-start md:items-center justify-between min-w-0">
+                  <div className="flex-1 w-full min-w-0">
                     <div className="flex flex-wrap items-center gap-2 mb-2">
-                      <h3 className="text-lg font-medium text-gray-900">{resume.title}</h3>
+                      <h3 className="text-xs sm:text-lg font-medium text-gray-900 break-words whitespace-normal w-full min-w-0 max-w-full">{resume.title}</h3>
                       {resume.verified && (
                         <span className="bg-green-100 text-green-800 text-xs px-2 py-1 rounded-full">
                           認証済み
                         </span>
                       )}
                     </div>
-                    <p className="text-gray-600 mb-3 line-clamp-2">{resume.description}</p>
+                    <p className="text-gray-600 mb-3 line-clamp-2 break-words">{resume.description}</p>
                     <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
                       <span className="flex items-center">
                         <CalendarIcon className="h-4 w-4 mr-1" />
@@ -230,7 +230,7 @@ export function ProfileScreen({
                             .map((name, index) => (
                               <span
                                 key={index}
-                                className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-blue-100 text-blue-800"
+                                className="inline-flex items-center px-2 py-0.5 rounded text-xs bg-blue-100 text-blue-800 break-words"
                               >
                                 {name}
                               </span>
